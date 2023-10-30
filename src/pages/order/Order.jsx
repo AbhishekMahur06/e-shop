@@ -5,7 +5,7 @@ import Loader from "../../components/loader/Loader";
 
 function Order() {
   const userid = JSON.parse(localStorage.getItem("user")).user.uid;
-  console.log("userid", userid);
+  // console.log("userid", userid);
   const context = useContext(myContext);
   const { mode, loading, order } = context;
   return (

@@ -1,4 +1,4 @@
-import React, { Fragment, useContext, useState } from "react";
+import { Fragment, useContext, useState } from "react";
 import myContext from "../../context/data/myContext";
 import { BsFillCloudSunFill } from "react-icons/bs";
 import { FiSun } from "react-icons/fi";
@@ -8,6 +8,7 @@ import { RxCross2 } from "react-icons/rx";
 import { useSelector } from "react-redux";
 
 function Navbar() {
+  const [activeTab, setActiveTab] = useState("Home");
   const context = useContext(myContext);
   const { mode, toggleMode } = context;
 
@@ -70,8 +71,10 @@ function Navbar() {
                 <div className="space-y-6 border-t border-gray-200 px-4 py-6">
                   <Link
                     to={"/allproducts"}
-                    className="text-sm font-medium text-gray-900 "
-                    style={{ color: mode === "dark" ? "white" : "" }}
+                    className="text-sm font-medium text-gray-900 hover:text-red-700 "
+                    style={{
+                      color: mode === "dark" ? "white  " : "",
+                    }}
                   >
                     All Products
                   </Link>
@@ -81,7 +84,7 @@ function Navbar() {
                       <Link
                         to={"/order"}
                         style={{ color: mode === "dark" ? "white" : "" }}
-                        className="-m-2 block p-2 font-medium text-gray-900"
+                        className="-m-2 block p-2 font-medium text-gray-900 hover:text-red-700 "
                       >
                         Order
                       </Link>
@@ -90,14 +93,14 @@ function Navbar() {
                     ""
                   )}
 
-                  {user?.user?.email === "knupadhyay784@gmail.com" ? (
+                  {user?.user?.email === "abhishekmahur05@gmail.com" ? (
                     <div className="flow-root">
                       <Link
                         to={"/dashboard"}
-                        className="-m-2 block p-2 font-medium text-gray-900"
+                        className="-m-2 block p-2 font-medium text-gray-900 hover:text-red-700 "
                         style={{ color: mode === "dark" ? "white" : "" }}
                       >
-                        admin
+                        Admin
                       </Link>
                     </div>
                   ) : (
@@ -108,7 +111,7 @@ function Navbar() {
                     <div className="flow-root">
                       <a
                         onClick={logout}
-                        className="-m-2 block p-2 font-medium text-gray-900 cursor-pointer"
+                        className="-m-2 block p-2 font-medium text-gray-900 cursor-pointer hover:text-red-700 "
                         style={{ color: mode === "dark" ? "white" : "" }}
                       >
                         Logout
@@ -118,7 +121,7 @@ function Navbar() {
                     <div className="flow-root">
                       <Link
                         to={"/signup"}
-                        className="-m-2 block p-2 font-medium text-gray-900 cursor-pointer"
+                        className="-m-2 block p-2 font-medium text-gray-900 cursor-pointer hover:text-red-700 "
                         style={{ color: mode === "dark" ? "white" : "" }}
                       >
                         Signup
@@ -133,8 +136,8 @@ function Navbar() {
                       <img
                         className="inline-block w-10 h-10 rounded-full"
                         src="https://overreacted.io/static/profile-pic-c715447ce38098828758e525a1128b87.jpg"
-                        alt="Dan_Abromov"
-                      />{" "}
+                        alt="img"
+                      />
                     </Link>
                   </div>
                 </div>
@@ -142,12 +145,12 @@ function Navbar() {
                 <div className="border-t border-gray-200 px-4 py-6">
                   <a href="#" className="-m-2 flex items-center p-2">
                     <img
-                      src="img/indiaflag.png"
+                      src="https://e7.pngegg.com/pngimages/836/833/png-clipart-round-orange-white-and-green-flag-of-indian-art-flag-of-india-computer-icons-national-flag-indian-flag-blue-flag.png"
                       alt=""
                       className="block h-auto w-5 flex-shrink-0"
                     />
                     <span
-                      className="ml-3 block text-base font-medium text-gray-900"
+                      className="ml-3 block text-base font-medium text-gray-900 hover:text-red-700 "
                       style={{ color: mode === "dark" ? "white" : "" }}
                     >
                       INDIA
@@ -208,12 +211,13 @@ function Navbar() {
                 </svg>
               </button>
 
+              {/* laptop screen */}
               {/* Logo */}
               <div className="ml-4 flex lg:ml-0">
                 <Link to={"/"} className="flex">
                   <div className="flex ">
                     <h1
-                      className=" text-2xl font-bold text-black  px-2 py-1 rounded"
+                      className=" text-2xl font-bold text-black  px-2 py-1 rounded hover:text-red-700"
                       style={{ color: mode === "dark" ? "white" : "" }}
                     >
                       E-Bharat
@@ -222,19 +226,38 @@ function Navbar() {
                 </Link>
               </div>
 
-              <div className="ml-auto flex items-center">
-                <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:space-x-6">
+              <div className="ml-auto flex items-center ">
+                <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:space-x-6 ">
                   <Link
-                    to={"/allproducts"}
-                    className="text-sm font-medium text-gray-700 "
+                    to={"/"}
+                    onClick={() => setActiveTab("Home")}
+                    className={`text-sm font-medium  hover:text-pink-700 ${
+                      activeTab === "Home" ? "text-red-700" : "text-gray-700"
+                    } `}
                     style={{ color: mode === "dark" ? "white" : "" }}
                   >
-                    All Products
+                    Home
                   </Link>
+                  <span onClick={() => setActiveTab("All Products")}>
+                    <Link
+                      to={"/allproducts"}
+                      className={`text-sm font-medium hover:text-red-700 ${
+                        activeTab === "All Products"
+                          ? "text-red-700"
+                          : "text-gray-700"
+                      } `}
+                      style={{ color: mode === "dark" ? "white" : "" }}
+                    >
+                      All Products
+                    </Link>
+                  </span>
                   {user ? (
                     <Link
                       to={"/order"}
-                      className="text-sm font-medium text-gray-700 "
+                      onClick={() => setActiveTab("Order")}
+                      className={`text-sm font-medium  hover:text-red-700 ${
+                        activeTab === "Order" ? "text-red-700" : "text-gray-700"
+                      } `}
                       style={{ color: mode === "dark" ? "white" : "" }}
                     >
                       Order
@@ -242,7 +265,7 @@ function Navbar() {
                   ) : (
                     <Link
                       to={"/signup"}
-                      className="text-sm font-medium text-gray-700 "
+                      className="text-sm font-medium text-gray-700 hover:text-red-700 "
                       style={{ color: mode === "dark" ? "white" : "" }}
                     >
                       Signup
@@ -252,7 +275,10 @@ function Navbar() {
                   {user?.user?.email === "abhishekmahur05@gmail.com" ? (
                     <Link
                       to={"/dashboard"}
-                      className="text-sm font-medium text-gray-700 "
+                      onClick={() => setActiveTab("Admin")}
+                      className={`text-sm font-medium  hover:text-red-700 ${
+                        activeTab === "Admin" ? "text-red-700" : "text-gray-700"
+                      } `}
                       style={{ color: mode === "dark" ? "white" : "" }}
                     >
                       Admin
@@ -264,7 +290,7 @@ function Navbar() {
                   {user ? (
                     <a
                       onClick={logout}
-                      className="text-sm font-medium text-gray-700 cursor-pointer  "
+                      className="text-sm font-medium text-gray-700 cursor-pointer hover:text-red-700  "
                       style={{ color: mode === "dark" ? "white" : "" }}
                     >
                       Logout
@@ -282,7 +308,7 @@ function Navbar() {
                       className="block h-auto w-5 flex-shrink-0"
                     />
                     <span
-                      className="ml-3 block text-sm font-medium"
+                      className="ml-3 block text-sm font-medium hover:text-red-700 "
                       style={{ color: mode === "dark" ? "white" : "" }}
                     >
                       INDIA
@@ -303,7 +329,8 @@ function Navbar() {
                   <button className="" onClick={toggleMode}>
                     {mode === "light" ? (
                       <FiSun className="" size={30} />
-                    ) : "dark" ? (
+                    ) : // eslint-disable-next-line no-constant-condition
+                    "dark" ? (
                       <BsFillCloudSunFill size={30} />
                     ) : (
                       ""
@@ -312,10 +339,10 @@ function Navbar() {
                 </div>
 
                 {/* Cart */}
-                <div className="ml-4 flow-root lg:ml-6">
+                <div className="ml-4 flow-root lg:ml-6 ">
                   <Link
                     to={"/cart"}
-                    className="group -m-2 flex items-center p-2"
+                    className="group -m-2 flex items-center p-2 hover:text-red-700"
                     style={{ color: mode === "dark" ? "white" : "" }}
                   >
                     <svg
@@ -334,7 +361,7 @@ function Navbar() {
                     </svg>
 
                     <span
-                      className="ml-2 text-sm font-medium text-gray-700 group-"
+                      className="ml-2 text-sm font-medium text-gray-700 group- "
                       style={{ color: mode === "dark" ? "white" : "" }}
                     >
                       {cartItems.length}

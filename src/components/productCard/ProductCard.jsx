@@ -44,7 +44,7 @@ function ProductCard() {
 
         <div className="flex flex-wrap justify-center -m-4">
           {product
-            .filter((obj) => obj.title.toLowerCase().includes(searchkey))
+            .filter((obj) => obj.category.toLowerCase().includes(searchkey))
             .filter((obj) => obj.category.toLowerCase().includes(filterType))
             .filter((obj) => obj.price.includes(filterPrice))
             .slice(0, 4)

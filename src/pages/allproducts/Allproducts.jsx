@@ -53,7 +53,7 @@ function Allproducts() {
 
           <div className="flex flex-wrap -m-4 justify-center">
             {product
-              .filter((obj) => obj.title.toLowerCase().includes(searchkey))
+              .filter((obj) => obj.category.toLowerCase().includes(searchkey))
               .filter((obj) => obj.category.toLowerCase().includes(filterType))
               .filter((obj) => obj.price.includes(filterPrice))
               .map((item, index) => {
