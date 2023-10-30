@@ -39,7 +39,7 @@ function DashboardTab() {
                   <div className="flex gap-2 items-center">
                     <MdOutlineProductionQuantityLimits />
                     Products
-                  </div>{" "}
+                  </div>
                 </button>
               </Tab>
               <Tab>

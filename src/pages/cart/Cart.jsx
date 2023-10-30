@@ -15,7 +15,7 @@ function Cart() {
   const dispatch = useDispatch();
 
   const cartItems = useSelector((state) => state.cart);
-  console.log(cartItems);
+  // console.log(cartItems);
 
   const deleteCart = (item) => {
     dispatch(deleteFromCart(item));
@@ -34,7 +34,7 @@ function Cart() {
       temp = temp + parseInt(cartItem.price);
     });
     setTotalAmount(temp);
-    console.log(temp);
+    // console.log(temp);
   }, [cartItems]);
 
   const shipping = parseInt(100);
@@ -42,9 +42,7 @@ function Cart() {
   const grandTotal = shipping + totalAmout;
   // console.log(grandTotal)
 
-  /**========================================================================
-   *!                           Payment Intigration
-   *========================================================================**/
+  // payment integration
 
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
@@ -137,6 +135,7 @@ function Cart() {
               const { title, price, description, imageUrl } = item;
               return (
                 <div
+                  key={index}
                   className="justify-between mb-6 rounded-lg border  drop-shadow-xl bg-white p-6  sm:flex  sm:justify-start"
                   style={{
                     backgroundColor: mode === "dark" ? "rgb(32 33 34)" : "",

@@ -5,6 +5,7 @@ import Layout from "../../components/layout/Layout";
 import myContext from "../../context/data/myContext";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../../redux/cartSlice";
+import { toast } from "react-toastify";
 
 function Allproducts() {
   const context = useContext(myContext);
@@ -21,7 +22,7 @@ function Allproducts() {
 
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart);
-  console.log(cartItems);
+  // console.log(cartItems);
 
   const addCart = (product) => {
     dispatch(addToCart(product));
@@ -50,7 +51,7 @@ function Allproducts() {
             <div className="h-1 w-20 bg-pink-600 rounded"></div>
           </div>
 
-          <div className="flex flex-wrap -m-4">
+          <div className="flex flex-wrap -m-4 justify-center">
             {product
               .filter((obj) => obj.title.toLowerCase().includes(searchkey))
               .filter((obj) => obj.category.toLowerCase().includes(filterType))
