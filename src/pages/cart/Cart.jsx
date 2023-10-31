@@ -137,7 +137,7 @@ function Cart() {
                 return (
                   <div
                     key={index}
-                    className="justify-between mb-6 rounded-lg border  drop-shadow-xl bg-white p-6  sm:flex  sm:justify-start"
+                    className="justify-between mb-6 rounded-lg border  drop-shadow-xl bg-pink-100 p-6  sm:flex  sm:justify-start"
                     style={{
                       backgroundColor: mode === "dark" ? "rgb(32 33 34)" : "",
                       color: mode === "dark" ? "white" : "",
@@ -263,7 +263,10 @@ function Cart() {
         </div>
       ) : (
         <div className="h-screen flex items-center justify-center flex-col">
-          <h1 className="text-5xl max-sm:text-center  ">
+          <h1
+            className="text-5xl max-sm:text-center "
+            style={{ color: mode === "dark" ? "white" : "" }}
+          >
             Your cart is empty...
           </h1>
           <img
