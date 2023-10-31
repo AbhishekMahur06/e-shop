@@ -1,24 +1,16 @@
-import React, { useContext, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import Filter from "../../components/filter/Filter";
-import ProductCard from "../../components/productCard/ProductCard";
+// import ProductCard from "../../components/productCard/ProductCard";
 import Layout from "../../components/layout/Layout";
 import myContext from "../../context/data/myContext";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../../redux/cartSlice";
 import { toast } from "react-toastify";
+import Loader from "../../components/loader/Loader";
 
 function Allproducts() {
   const context = useContext(myContext);
-  const {
-    mode,
-    product,
-    searchkey,
-    setSearchkey,
-    filterType,
-    setFilterType,
-    filterPrice,
-    setFilterPrice,
-  } = context;
+  const { mode, product, searchkey, loading } = context;
 
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart);
@@ -38,6 +30,7 @@ function Allproducts() {
 
   return (
     <Layout>
+      {loading && <Loader />}
       <Filter />
       <section className="text-gray-600 body-font">
         <div className="container px-5 py-8 md:py-16 mx-auto">
@@ -53,11 +46,11 @@ function Allproducts() {
 
           <div className="flex flex-wrap -m-4 justify-center">
             {product
-              .filter((obj) => obj.category.toLowerCase().includes(searchkey))
-              .filter((obj) => obj.category.toLowerCase().includes(filterType))
-              .filter((obj) => obj.price.includes(filterPrice))
+              .filter((obj) =>
+                obj.category.toLowerCase().includes(searchkey.toLowerCase())
+              )
               .map((item, index) => {
-                const { title, price, description, imageUrl, id } = item;
+                const { title, price, imageUrl, id } = item;
                 return (
                   <div
                     onClick={() =>

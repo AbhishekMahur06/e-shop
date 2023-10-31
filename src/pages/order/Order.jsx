@@ -5,19 +5,35 @@ import Loader from "../../components/loader/Loader";
 
 function Order() {
   const userid = JSON.parse(localStorage.getItem("user")).user.uid;
-  // console.log("userid", userid);
+
   const context = useContext(myContext);
   const { mode, loading, order } = context;
+
   return (
     <Layout>
       {loading && <Loader />}
       {order.length > 0 ? (
         <>
-          <div className=" h-full pt-10">
+          <div className=" h-full font-bold pt-10">
+            <h1 className="text-2xl  text-center max-sm:text-center ">
+              {/* Yours Orders */}
+              {order.filter((obj) => obj.userid) === userid ? (
+                "Yours Orders"
+              ) : (
+                <div className="flex items-center justify-center flex-col ">
+                  <h1 className="text-3xl max-sm:text-center  ">
+                    Your don't have any order...
+                  </h1>
+                  <img
+                    src="https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-4816550-4004141.png"
+                    alt="img"
+                  />
+                </div>
+              )}
+            </h1>
             {order
               .filter((obj) => obj.userid == userid)
               .map((order, index) => {
-                // order.cartItems.map()
                 return (
                   <div
                     key={index}
@@ -46,7 +62,7 @@ function Order() {
                                     color: mode === "dark" ? "white" : "",
                                   }}
                                 >
-                                  {item.title}
+                                  Title: {item.title}
                                 </h2>
                                 <p
                                   className="mt-1 text-xs text-gray-700"
@@ -54,7 +70,7 @@ function Order() {
                                     color: mode === "dark" ? "white" : "",
                                   }}
                                 >
-                                  {item.description}
+                                  Description: {item.description}
                                 </p>
                                 <p
                                   className="mt-1 text-xs text-gray-700"
@@ -62,7 +78,7 @@ function Order() {
                                     color: mode === "dark" ? "white" : "",
                                   }}
                                 >
-                                  {item.price}
+                                  Price: {item.price}
                                 </p>
                               </div>
                             </div>
@@ -76,7 +92,7 @@ function Order() {
           </div>
         </>
       ) : (
-        <h2 className=" text-center tex-2xl text-white">Not Order</h2>
+        <h2 className=" text-center tex-2xl text-white ">Not Order</h2>
       )}
     </Layout>
   );

@@ -6,16 +6,7 @@ import { toast } from "react-toastify";
 
 function ProductCard() {
   const context = useContext(myContext);
-  const {
-    mode,
-    product,
-    searchkey,
-    setSearchkey,
-    filterType,
-    setFilterType,
-    filterPrice,
-    setFilterPrice,
-  } = context;
+  const { mode, product, searchkey } = context;
 
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart);
@@ -44,12 +35,12 @@ function ProductCard() {
 
         <div className="flex flex-wrap justify-center -m-4">
           {product
-            .filter((obj) => obj.category.toLowerCase().includes(searchkey))
-            .filter((obj) => obj.category.toLowerCase().includes(filterType))
-            .filter((obj) => obj.price.includes(filterPrice))
+            .filter((obj) =>
+              obj.category.toLowerCase().includes(searchkey.toLowerCase())
+            )
             .slice(0, 4)
             .map((item, index) => {
-              const { title, price, description, imageUrl, id } = item;
+              const { title, price, imageUrl, id } = item;
               return (
                 <div key={index} className="p-4 md:w-1/4  drop-shadow-lg ">
                   <div

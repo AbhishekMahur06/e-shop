@@ -1,4 +1,4 @@
-import { Fragment, useContext, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import myContext from "../../context/data/myContext";
 import { BsFillCloudSunFill } from "react-icons/bs";
 import { FiSun } from "react-icons/fi";
@@ -8,7 +8,7 @@ import { RxCross2 } from "react-icons/rx";
 import { useSelector } from "react-redux";
 
 function Navbar() {
-  const [activeTab, setActiveTab] = useState("Home");
+  const [activeTab, setActiveTab] = useState(null);
   const context = useContext(myContext);
   const { mode, toggleMode } = context;
 
@@ -24,6 +24,11 @@ function Navbar() {
   };
 
   const cartItems = useSelector((state) => state.cart);
+
+  const fun = (data) => {
+    setActiveTab(data);
+    // console.log(data);
+  };
 
   return (
     <div className="bg-white sticky top-0 z-50">
@@ -230,7 +235,7 @@ function Navbar() {
                 <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:space-x-6 ">
                   <Link
                     to={"/"}
-                    onClick={() => setActiveTab("Home")}
+                    onClick={() => fun("Home")}
                     className={`text-sm font-medium  hover:text-pink-700 ${
                       activeTab === "Home" ? "text-red-700" : "text-gray-700"
                     } `}
@@ -238,27 +243,32 @@ function Navbar() {
                   >
                     Home
                   </Link>
-                  <span onClick={() => setActiveTab("All Products")}>
-                    <Link
-                      to={"/allproducts"}
-                      className={`text-sm font-medium hover:text-red-700 ${
-                        activeTab === "All Products"
-                          ? "text-red-700"
-                          : "text-gray-700"
-                      } `}
-                      style={{ color: mode === "dark" ? "white" : "" }}
-                    >
-                      All Products
-                    </Link>
-                  </span>
+
+                  <Link
+                    to={"/allproducts"}
+                    onClick={() => fun("All Products")}
+                    className={`text-sm font-medium hover:text-red-700 ${
+                      activeTab === "All Products"
+                        ? "text-red-700"
+                        : "text-gray-700"
+                    } `}
+                    style={{ color: mode === "dark" ? "white" : "" }}
+                  >
+                    All Products
+                  </Link>
+
                   {user ? (
                     <Link
                       to={"/order"}
                       onClick={() => setActiveTab("Order")}
-                      className={`text-sm font-medium  hover:text-red-700 ${
-                        activeTab === "Order" ? "text-red-700" : "text-gray-700"
-                      } `}
-                      style={{ color: mode === "dark" ? "white" : "" }}
+                      className="text-sm font-medium  hover:text-red-700  "
+                      style={{
+                        color: mode === "dark" ? "white" : "",
+                        text:
+                          activeTab === "Order"
+                            ? "text-red-700"
+                            : "text-green-700",
+                      }}
                     >
                       Order
                     </Link>
