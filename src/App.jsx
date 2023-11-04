@@ -20,6 +20,7 @@ import UpdateProduct from "./pages/admin/page/UpdateProduct";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Allproducts from "./pages/allproducts/Allproducts";
+import Profile from "./pages/profile/Profile";
 function App() {
   return (
     <MyState>
@@ -63,6 +64,7 @@ function App() {
               </ProtectedRouteForAdmin>
             }
           />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/*" element={<NoPage />} />
         </Routes>
         <ToastContainer />

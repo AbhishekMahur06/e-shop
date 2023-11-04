@@ -171,7 +171,7 @@ function Cart() {
                       </div>
                       <div
                         onClick={() => deleteCart(item)}
-                        className="mt-4 flex justify-between sm:space-y-6 sm:mt-0 sm:block sm:space-x-6"
+                        className="mt-4 flex justify-between sm:space-y-6 sm:mt-0 sm:block sm:space-x-6 cursor-pointer"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
