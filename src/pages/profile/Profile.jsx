@@ -23,9 +23,9 @@ function Profile() {
 
   return (
     <Layout>
-      <div className=" h-[50vh] flex max-sm:flex-col max-sm:h-screen  border-red-500 p-5 ba">
+      <div className=" h-[50vh] flex max-sm:flex-col max-sm:h-fit  border-red-500 p-5">
         {/* left */}
-        <div className=" border-solid-red h-full w-full border bg-neutral-400">
+        <div className=" border-solid-red h-full w-full border bg-neutral-400 max-sm:h-[40%] pb-10">
           <img
             className=" w-[40%] mt-6 ml-[25%] max-sm:m-auto max-sm:mt-10 max-sm:w-[50%]"
             src="https://www.shareicon.net/data/512x512/2016/05/24/770137_man_512x512.png"

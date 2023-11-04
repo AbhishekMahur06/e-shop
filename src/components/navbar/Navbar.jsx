@@ -8,7 +8,6 @@ import { RxCross2 } from "react-icons/rx";
 import { useSelector } from "react-redux";
 
 function Navbar() {
-  const [activeTab, setActiveTab] = useState(null);
   const context = useContext(myContext);
   const { mode, toggleMode } = context;
 
@@ -16,19 +15,12 @@ function Navbar() {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
-  // console.log(user.user.email)
-
   const logout = () => {
     localStorage.clear("user");
     window.location.href = "/login";
   };
 
   const cartItems = useSelector((state) => state.cart);
-
-  const fun = (data) => {
-    setActiveTab(data);
-    // console.log(data);
-  };
 
   return (
     <div className="bg-white sticky top-0 z-50">
@@ -236,10 +228,7 @@ function Navbar() {
                 <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:space-x-6 ">
                   <Link
                     to={"/"}
-                    onClick={() => fun("Home")}
-                    className={`text-sm font-medium  hover:text-pink-700 ${
-                      activeTab === "Home" ? "text-red-700" : "text-gray-700"
-                    } `}
+                    className="text-sm font-medium  hover:text-pink-700 text-gray-700"
                     style={{ color: mode === "dark" ? "white" : "" }}
                   >
                     Home
@@ -247,12 +236,7 @@ function Navbar() {
 
                   <Link
                     to={"/allproducts"}
-                    onClick={() => fun("All Products")}
-                    className={`text-sm font-medium hover:text-red-700 ${
-                      activeTab === "All Products"
-                        ? "text-red-700"
-                        : "text-gray-700"
-                    } `}
+                    className="text-sm font-medium hover:text-red-700 text-gray-700"
                     style={{ color: mode === "dark" ? "white" : "" }}
                   >
                     All Products
@@ -261,15 +245,8 @@ function Navbar() {
                   {user ? (
                     <Link
                       to={"/order"}
-                      onClick={() => setActiveTab("Order")}
-                      className="text-sm font-medium  hover:text-red-700  "
-                      style={{
-                        color: mode === "dark" ? "white" : "",
-                        text:
-                          activeTab === "Order"
-                            ? "text-red-700"
-                            : "text-green-700",
-                      }}
+                      className="text-sm font-medium  hover:text-red-700 text-gray-700"
+                      style={{ color: mode === "dark" ? "white" : "" }}
                     >
                       Order
                     </Link>
@@ -286,10 +263,7 @@ function Navbar() {
                   {user?.user?.email === "abhishekmahur05@gmail.com" ? (
                     <Link
                       to={"/dashboard"}
-                      onClick={() => setActiveTab("Admin")}
-                      className={`text-sm font-medium  hover:text-red-700 ${
-                        activeTab === "Admin" ? "text-red-700" : "text-gray-700"
-                      } `}
+                      className="text-sm font-medium  hover:text-red-700 text-gray-700"
                       style={{ color: mode === "dark" ? "white" : "" }}
                     >
                       Admin
@@ -344,7 +318,7 @@ function Navbar() {
                 <div className="flex  lg:ml-6  ">
                   <button className="" onClick={toggleMode}>
                     {mode === "light" ? (
-                      <FiSun className="" size={30} />
+                      <FiSun className="hover:text-red-700" size={30} />
                     ) : // eslint-disable-next-line no-constant-condition
                     "dark" ? (
                       <BsFillCloudSunFill size={30} />
@@ -359,7 +333,7 @@ function Navbar() {
                   <Link
                     to={"/cart"}
                     className="group -m-2 flex items-center p-2 hover:text-red-700"
-                    style={{ color: mode === "dark" ? "white" : "" }}
+                    style={{ color: mode === "dark" ? "white " : "" }}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
