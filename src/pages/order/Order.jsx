@@ -80,7 +80,10 @@ function Order() {
         </>
       ) : (
         <div className="h-[100vh] flex items-center justify-center flex-col">
-          <h1 className="text-3xl max-sm:text-center">
+          <h1
+            style={{ color: mode === "dark" ? "white" : "" }}
+            className="text-3xl max-sm:text-center"
+          >
             You do not have any orders...
           </h1>
           <img
