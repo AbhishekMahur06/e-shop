@@ -1,83 +1,133 @@
-import { useContext, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import myContext from '../../context/data/myContext'
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../fireabase/FirebaseConfig';
-import { toast } from 'react-toastify';
-import Loader from '../../components/loader/Loader';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { toast } from "react-toastify";
+
+import { auth } from "../../fireabase/FirebaseConfig";
+import Loader from "../../components/loader/Loader";
 
 function Login() {
-    const context = useContext(myContext)
-    const {loading, setLoading} = context;
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    const login = async () => {
-        setLoading(true)
-        try {
-            const result = await signInWithEmailAndPassword(auth,email,password);
-            toast.success("Login successful", {
-                position: "top-right",
-                autoClose: 2000,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "colored",
-              })
-            localStorage.setItem('user', JSON.stringify(result))
-            navigate('/')
-            setLoading(false)
-            
-        } catch (error) {
-            console.log(error)
-            setLoading(loading)
-        }
+    const trimmedEmail = email.trim();
 
+    if (!trimmedEmail || !password) {
+      toast.error("Email and password are required");
+      return;
     }
-   
-    return (
-        <div className=' flex justify-center items-center h-screen'>
-            {loading && <Loader/>}
-            <div className=' bg-gray-800 px-10 py-10 rounded-xl '>
-                <div className="">
-                    <h1 className='text-center text-white text-xl mb-4 font-bold'>Login</h1>
-                </div>
-                <div>
-                    <input type="email"
-                    value={email}
-                    onChange={(e)=> setEmail(e.target.value)}
-                        name='email'
-                        className=' bg-gray-600 mb-4 px-2 py-2 w-full lg:w-[20em] rounded-lg text-white placeholder:text-gray-200 outline-none'
-                        placeholder='Email'
-                    />
-                </div>
-                <div>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e)=> setPassword(e.target.value)}
-                        className=' bg-gray-600 mb-4 px-2 py-2 w-full lg:w-[20em] rounded-lg text-white placeholder:text-gray-200 outline-none'
-                        placeholder='Password'
-                    />
-                </div>
-                <div className=' flex justify-center mb-3'>
-                    <button
-                    onClick={login}
-                        className=' bg-yellow-500 w-full text-black font-bold  px-2 py-2 rounded-lg'>
-                        Login
-                    </button>
-                </div>
-                <div>
-                    <h2 className='text-white'>Don't have an account <Link className=' text-yellow-500 font-bold' to={'/signup'}>Signup</Link></h2>
-                </div>
-            </div>
+
+    setLoading(true);
+
+    try {
+      const result = await signInWithEmailAndPassword(
+        auth,
+        trimmedEmail,
+        password,
+      );
+
+      localStorage.setItem("user", JSON.stringify(result));
+
+      toast.success("Login successful", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored",
+      });
+
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error("Login error:", error);
+
+      switch (error.code) {
+        case "auth/invalid-credential":
+          toast.error("Invalid email or password");
+          break;
+
+        case "auth/user-not-found":
+          toast.error("No account found with this email");
+          break;
+
+        case "auth/wrong-password":
+          toast.error("Incorrect password");
+          break;
+
+        case "auth/invalid-email":
+          toast.error("Enter a valid email address");
+          break;
+
+        case "auth/too-many-requests":
+          toast.error("Too many attempts. Try again later");
+          break;
+
+        default:
+          toast.error("Login failed. Please try again");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex h-screen items-center justify-center">
+      {loading && <Loader />}
+
+      <form
+        onSubmit={handleSubmit}
+        className="rounded-xl bg-gray-800 px-10 py-10"
+      >
+        <h1 className="mb-4 text-center text-xl font-bold text-white">Login</h1>
+
+        <input
+          type="email"
+          name="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
+          className="mb-4 w-full rounded-lg bg-gray-600 px-2 py-2 text-white outline-none placeholder:text-gray-200 lg:w-[20em]"
+          placeholder="Email"
+          disabled={loading}
+        />
+
+        <input
+          type="password"
+          name="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
+          className="mb-4 w-full rounded-lg bg-gray-600 px-2 py-2 text-white outline-none placeholder:text-gray-200 lg:w-[20em]"
+          placeholder="Password"
+          disabled={loading}
+        />
+
+        <div className="mb-3 flex justify-center">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-lg bg-yellow-500 px-2 py-2 font-bold text-black disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
         </div>
-    )
+
+        <h2 className="text-white">
+          Don't have an account{" "}
+          <Link className="font-bold text-yellow-500" to="/signup">
+            Signup
+          </Link>
+        </h2>
+      </form>
+    </div>
+  );
 }
 
-export default Login
+export default Login;

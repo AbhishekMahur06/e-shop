@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import MyContext from "./myContext";
+
 import {
   Timestamp,
   addDoc,
@@ -10,173 +11,273 @@ import {
   onSnapshot,
   orderBy,
   query,
-  setDoc,
+  updateDoc,
 } from "firebase/firestore";
+
 import { toast } from "react-toastify";
 import { fireDB } from "../../fireabase/FirebaseConfig";
 
-function myState(props) {
+const getDefaultProduct = () => ({
+  title: "",
+  price: "",
+  imageUrl: "",
+  category: "",
+  description: "",
+  time: Timestamp.now(),
+  date: new Date().toLocaleString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  }),
+});
+
+function MyState({ children }) {
   const [mode, setMode] = useState("light");
 
   const toggleMode = () => {
-    if (mode === "light") {
-      setMode("dark");
-      document.body.style.backgroundColor = "rgb(17, 24, 39)";
-    } else {
-      setMode("light");
-      document.body.style.backgroundColor = "white";
-    }
+    setMode((prevMode) => {
+      const newMode = prevMode === "light" ? "dark" : "light";
+
+      document.body.style.backgroundColor =
+        newMode === "dark" ? "rgb(17, 24, 39)" : "white";
+
+      return newMode;
+    });
   };
 
-  const [loading, setLoading] = useState(false);
+  const [productLoading, setProductLoading] = useState(false);
+  const [orderLoading, setOrderLoading] = useState(false);
+  const [userLoading, setUserLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const [products, setProducts] = useState({
-    title: null,
-    price: null,
-    imageUrl: null,
-    category: null,
-    description: null,
-    time: Timestamp.now(),
-    date: new Date().toLocaleString("en-US", {
-      month: "short",
-      day: "2-digit",
-      year: "numeric",
-    }),
-  });
-
-  const addProduct = async () => {
-    if (
-      products.title == null ||
-      products.price == null ||
-      products.imageUrl == null ||
-      products.category == null ||
-      products.description == null
-    ) {
-      return toast.error("all fields are required");
-    }
-
-    setLoading(true);
-
-    try {
-      const productRef = collection(fireDB, "products");
-      await addDoc(productRef, products);
-      toast.success("Add product successfully");
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 800);
-      getProductData();
-      setLoading(false);
-    } catch (error) {
-      console.log(error);
-      setLoading(false);
-    }
-    // setProducts("")
-  };
-
+  const [products, setProducts] = useState(getDefaultProduct);
   const [product, setProduct] = useState([]);
 
-  const getProductData = async () => {
-    setLoading(true);
+  const addProduct = async () => {
+    const { title, price, imageUrl, category, description } = products;
+
+    const cleanTitle = title?.trim();
+    const cleanImageUrl = imageUrl?.trim();
+    const cleanCategory = category?.trim();
+    const cleanDescription = description?.trim();
+    const numericPrice = Number(price);
+
+    if (
+      !cleanTitle ||
+      !cleanImageUrl ||
+      !cleanCategory ||
+      !cleanDescription ||
+      price === ""
+    ) {
+      toast.error("All fields are required");
+      return false;
+    }
+
+    if (!Number.isFinite(numericPrice) || numericPrice <= 0) {
+      toast.error("Price must be a valid number greater than 0");
+      return false;
+    }
+
+    setActionLoading(true);
 
     try {
-      const q = query(collection(fireDB, "products"), orderBy("time"));
+      const productData = {
+        title: cleanTitle,
+        price: numericPrice,
+        imageUrl: cleanImageUrl,
+        category: cleanCategory,
+        description: cleanDescription,
+        time: Timestamp.now(),
+        date: new Date().toLocaleString("en-US", {
+          month: "short",
+          day: "2-digit",
+          year: "numeric",
+        }),
+      };
 
-      const data = onSnapshot(q, (QuerySnapshot) => {
-        let productArray = [];
-        QuerySnapshot.forEach((doc) => {
-          productArray.push({ ...doc.data(), id: doc.id });
-        });
-        setProduct(productArray);
-        // console.log(productArray);
-        setLoading(false);
-      });
+      await addDoc(collection(fireDB, "products"), productData);
 
-      return () => data;
+      toast.success("Product added successfully");
+      setProducts(getDefaultProduct());
+
+      return true;
     } catch (error) {
-      console.log(error);
-      setLoading(false);
+      console.error("Error adding product:", error);
+      toast.error("Failed to add product");
+      return false;
+    } finally {
+      setActionLoading(false);
     }
   };
 
   useEffect(() => {
-    getProductData();
+    setProductLoading(true);
+
+    const productsQuery = query(
+      collection(fireDB, "products"),
+      orderBy("time"),
+    );
+
+    const unsubscribe = onSnapshot(
+      productsQuery,
+      (snapshot) => {
+        const productArray = snapshot.docs.map((document) => ({
+          ...document.data(),
+          id: document.id,
+        }));
+
+        setProduct(productArray);
+        setProductLoading(false);
+      },
+      (error) => {
+        console.error("Error getting products:", error);
+        toast.error("Failed to load products");
+        setProductLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
   }, []);
 
-  // update product function
-
   const edithandle = (item) => {
-    setProducts(item);
+    if (!item?.id) {
+      toast.error("Product ID is missing");
+      return;
+    }
+
+    setProducts({
+      ...item,
+      price: item.price ?? "",
+    });
   };
 
   const updateProduct = async () => {
-    setLoading(true);
+    const { id, title, price, imageUrl, category, description } = products;
+
+    const cleanTitle = title?.trim();
+    const cleanImageUrl = imageUrl?.trim();
+    const cleanCategory = category?.trim();
+    const cleanDescription = description?.trim();
+    const numericPrice = Number(price);
+
+    if (!id) {
+      toast.error("Product ID is missing");
+      return false;
+    }
+
+    if (
+      !cleanTitle ||
+      !cleanImageUrl ||
+      !cleanCategory ||
+      !cleanDescription ||
+      price === ""
+    ) {
+      toast.error("All fields are required");
+      return false;
+    }
+
+    if (!Number.isFinite(numericPrice) || numericPrice <= 0) {
+      toast.error("Price must be a valid number greater than 0");
+      return false;
+    }
+
+    setActionLoading(true);
+
     try {
-      await setDoc(doc(fireDB, "products", products.id), products);
-      toast.success("Product Updated successfully");
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 800);
-      getProductData();
-      setLoading(false);
+      await updateDoc(doc(fireDB, "products", id), {
+        title: cleanTitle,
+        price: numericPrice,
+        imageUrl: cleanImageUrl,
+        category: cleanCategory,
+        description: cleanDescription,
+        updatedAt: Timestamp.now(),
+      });
+
+      toast.success("Product updated successfully");
+      setProducts(getDefaultProduct());
+
+      return true;
     } catch (error) {
-      console.log(error);
-      setLoading(false);
+      console.error("Error updating product:", error);
+      toast.error("Failed to update product");
+      return false;
+    } finally {
+      setActionLoading(false);
     }
   };
-
-  // delete product
 
   const deleteProduct = async (item) => {
-    setLoading(true);
+    if (!item?.id) {
+      toast.error("Product ID is missing");
+      return false;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${item.title}"?`,
+    );
+
+    if (!confirmed) {
+      return false;
+    }
+
+    setActionLoading(true);
+
     try {
       await deleteDoc(doc(fireDB, "products", item.id));
-      toast.success("Product Deleted successfully");
-      getProductData();
-      setLoading(false);
+
+      toast.success("Product deleted successfully");
+
+      return true;
     } catch (error) {
-      console.log(error);
-      setLoading(false);
+      console.error("Error deleting product:", error);
+      toast.error("Failed to delete product");
+      return false;
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  // order
   const [order, setOrder] = useState([]);
 
   const getOrderData = async () => {
-    setLoading(true);
+    setOrderLoading(true);
+
     try {
       const result = await getDocs(collection(fireDB, "order"));
-      const ordersArray = [];
-      result.forEach((doc) => {
-        ordersArray.push(doc.data());
-        setLoading(false);
-      });
+
+      const ordersArray = result.docs.map((document) => ({
+        ...document.data(),
+        id: document.id,
+      }));
+
       setOrder(ordersArray);
-      // console.log(ordersArray);
-      setLoading(false);
     } catch (error) {
-      console.log(error);
-      setLoading(false);
+      console.error("Error getting orders:", error);
+      toast.error("Failed to load orders");
+    } finally {
+      setOrderLoading(false);
     }
   };
 
   const [user, setUser] = useState([]);
 
   const getUserData = async () => {
-    setLoading(true);
+    setUserLoading(true);
+
     try {
       const result = await getDocs(collection(fireDB, "users"));
-      const usersArray = [];
-      result.forEach((doc) => {
-        usersArray.push(doc.data());
-        setLoading(false);
-      });
+
+      const usersArray = result.docs.map((document) => ({
+        ...document.data(),
+        id: document.id,
+      }));
+
       setUser(usersArray);
-      //   console.log(usersArray);
-      setLoading(false);
     } catch (error) {
-      console.log(error);
-      setLoading(false);
+      console.error("Error getting users:", error);
+      toast.error("Failed to load users");
+    } finally {
+      setUserLoading(false);
     }
   };
 
@@ -189,22 +290,33 @@ function myState(props) {
   const [filterType, setFilterType] = useState("");
   const [filterPrice, setFilterPrice] = useState("");
 
+  const loading =
+    productLoading || orderLoading || userLoading || actionLoading;
+
   return (
     <MyContext.Provider
       value={{
         mode,
         toggleMode,
+
         loading,
-        setLoading,
+        productLoading,
+        orderLoading,
+        userLoading,
+        actionLoading,
+
         products,
         setProducts,
-        addProduct,
         product,
+
+        addProduct,
         edithandle,
         updateProduct,
         deleteProduct,
+
         order,
         user,
+
         searchkey,
         setSearchkey,
         filterType,
@@ -213,9 +325,9 @@ function myState(props) {
         setFilterPrice,
       }}
     >
-      {props.children}
+      {children}
     </MyContext.Provider>
   );
 }
 
-export default myState;
+export default MyState;

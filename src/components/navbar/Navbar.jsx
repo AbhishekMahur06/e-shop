@@ -1,29 +1,65 @@
 import { Fragment, useContext, useState } from "react";
-import myContext from "../../context/data/myContext";
+import { useSelector } from "react-redux";
+import { Dialog, Transition } from "@headlessui/react";
 import { BsFillCloudSunFill } from "react-icons/bs";
 import { FiSun } from "react-icons/fi";
-import { Link } from "react-router-dom";
-import { Dialog, Transition } from "@headlessui/react";
 import { RxCross2 } from "react-icons/rx";
-import { useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import myContext from "../../context/data/myContext";
+
+const ADMIN_EMAIL = "abhishekmahur05@gmail.com";
+
+const getLoggedInUser = () => {
+  try {
+    const savedUser = localStorage.getItem("user");
+
+    if (!savedUser) {
+      return null;
+    }
+
+    const parsedUser = JSON.parse(savedUser);
+
+    return parsedUser?.user || null;
+  } catch (error) {
+    console.error("Invalid user data:", error);
+    localStorage.removeItem("user");
+    return null;
+  }
+};
 
 function Navbar() {
-  const context = useContext(myContext);
-  const { mode, toggleMode } = context;
+  const { mode, toggleMode } = useContext(myContext);
 
   const [open, setOpen] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  const logout = () => {
-    localStorage.clear("user");
-    window.location.href = "/login";
-  };
-
+  const navigate = useNavigate();
   const cartItems = useSelector((state) => state.cart);
 
+  const user = getLoggedInUser();
+  const isAdmin = user?.email === ADMIN_EMAIL;
+  const isDark = mode === "dark";
+
+  const cartCount = Array.isArray(cartItems)
+    ? cartItems.reduce((total, item) => total + Number(item?.quantity || 1), 0)
+    : 0;
+
+  const logout = () => {
+    localStorage.removeItem("user");
+    setOpen(false);
+    navigate("/login", { replace: true });
+  };
+
+  const closeMobileMenu = () => {
+    setOpen(false);
+  };
+
   return (
-    <div className="bg-white sticky top-0 z-50">
+    <div
+      className="sticky top-0 z-50"
+      style={{
+        backgroundColor: isDark ? "rgb(17, 24, 39)" : "white",
+      }}
+    >
       <Transition.Root show={open} as={Fragment}>
         <Dialog as="div" className="relative z-40 lg:hidden" onClose={setOpen}>
           <Transition.Child
@@ -49,112 +85,117 @@ function Navbar() {
               leaveTo="-translate-x-full"
             >
               <Dialog.Panel
-                className="relative flex w-full max-w-xs flex-col overflow-y-auto bg-white pb-12 shadow-xl"
+                className="relative flex w-full max-w-xs flex-col overflow-y-auto pb-12 shadow-xl"
                 style={{
-                  backgroundColor: mode === "dark" ? "rgb(40, 44, 52)" : "",
-                  color: mode === "dark" ? "white" : "",
+                  backgroundColor: isDark ? "rgb(40, 44, 52)" : "white",
+                  color: isDark ? "white" : "black",
                 }}
               >
                 <div className="flex px-4 pb-2 pt-28">
                   <button
                     type="button"
                     className="-m-2 inline-flex items-center justify-center rounded-md p-2 text-gray-400"
-                    onClick={() => setOpen(false)}
+                    onClick={closeMobileMenu}
+                    aria-label="Close menu"
                   >
-                    <span className="sr-only">Close menu</span>
-                    <RxCross2 />
+                    <RxCross2 size={24} />
                   </button>
                 </div>
+
                 <div className="space-y-6 border-t border-gray-200 px-4 py-6">
                   <Link
-                    to={"/allproducts"}
-                    className="text-sm font-medium text-gray-900 hover:text-red-700 "
-                    style={{
-                      color: mode === "dark" ? "white  " : "",
-                    }}
+                    to="/"
+                    onClick={closeMobileMenu}
+                    className="block text-sm font-medium hover:text-red-700"
+                    style={{ color: isDark ? "white" : "" }}
+                  >
+                    Home
+                  </Link>
+
+                  <Link
+                    to="/allproducts"
+                    onClick={closeMobileMenu}
+                    className="block text-sm font-medium hover:text-red-700"
+                    style={{ color: isDark ? "white" : "" }}
                   >
                     All Products
                   </Link>
 
-                  {user ? (
-                    <div className="flow-root">
-                      <Link
-                        to={"/order"}
-                        style={{ color: mode === "dark" ? "white" : "" }}
-                        className="-m-2 block p-2 font-medium text-gray-900 hover:text-red-700 "
-                      >
-                        Order
-                      </Link>
-                    </div>
-                  ) : (
-                    ""
+                  {user && (
+                    <Link
+                      to="/order"
+                      onClick={closeMobileMenu}
+                      className="block text-sm font-medium hover:text-red-700"
+                      style={{ color: isDark ? "white" : "" }}
+                    >
+                      Order
+                    </Link>
                   )}
 
-                  {user?.user?.email === "abhishekmahur05@gmail.com" ? (
-                    <div className="flow-root">
-                      <Link
-                        to={"/dashboard"}
-                        className="-m-2 block p-2 font-medium text-gray-900 hover:text-red-700 "
-                        style={{ color: mode === "dark" ? "white" : "" }}
-                      >
-                        Admin
-                      </Link>
-                    </div>
-                  ) : (
-                    ""
+                  {isAdmin && (
+                    <Link
+                      to="/dashboard"
+                      onClick={closeMobileMenu}
+                      className="block text-sm font-medium hover:text-red-700"
+                      style={{ color: isDark ? "white" : "" }}
+                    >
+                      Admin
+                    </Link>
                   )}
 
                   {user ? (
-                    <div className="flow-root">
-                      <a
-                        onClick={logout}
-                        className="-m-2 block p-2 font-medium text-gray-900 cursor-pointer hover:text-red-700 "
-                        style={{ color: mode === "dark" ? "white" : "" }}
-                      >
-                        Logout
-                      </a>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={logout}
+                      className="block text-sm font-medium hover:text-red-700"
+                      style={{ color: isDark ? "white" : "" }}
+                    >
+                      Logout
+                    </button>
                   ) : (
-                    <div className="flow-root">
+                    <>
                       <Link
-                        to={"/signup"}
-                        className="-m-2 block p-2 font-medium text-gray-900 cursor-pointer hover:text-red-700 "
-                        style={{ color: mode === "dark" ? "white" : "" }}
+                        to="/login"
+                        onClick={closeMobileMenu}
+                        className="block text-sm font-medium hover:text-red-700"
+                        style={{ color: isDark ? "white" : "" }}
+                      >
+                        Login
+                      </Link>
+
+                      <Link
+                        to="/signup"
+                        onClick={closeMobileMenu}
+                        className="block text-sm font-medium hover:text-red-700"
+                        style={{ color: isDark ? "white" : "" }}
                       >
                         Signup
                       </Link>
-                    </div>
+                    </>
                   )}
-                  {/* profile */}
-                  <div className="flow-root">
+
+                  {user && (
                     <Link
-                      to={"/profile"}
-                      className="-m-2 block p-2 font-medium text-gray-900 cursor-pointer"
+                      to="/profile"
+                      onClick={closeMobileMenu}
+                      className="block"
                     >
                       <img
-                        className="inline-block w-10 h-10 rounded-full border border-black"
+                        className="inline-block h-10 w-10 rounded-full border border-black"
                         src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4mYGiDHOtUVcSxuzNfeds4xWXNOpQ-lIMPA&usqp=CAU"
-                        alt="user-profile"
+                        alt="User profile"
                       />
                     </Link>
-                  </div>
+                  )}
                 </div>
 
                 <div className="border-t border-gray-200 px-4 py-6">
-                  <a href="#" className="-m-2 flex items-center p-2">
-                    <img
-                      src="https://e7.pngegg.com/pngimages/836/833/png-clipart-round-orange-white-and-green-flag-of-indian-art-flag-of-india-computer-icons-national-flag-indian-flag-blue-flag.png"
-                      alt=""
-                      className="block h-auto w-5 flex-shrink-0"
-                    />
-                    <span
-                      className="ml-3 block text-base font-medium text-gray-900 hover:text-red-700 "
-                      style={{ color: mode === "dark" ? "white" : "" }}
-                    >
-                      INDIA
-                    </span>
-                    <span className="sr-only">, change currency</span>
-                  </a>
+                  <span
+                    className="ml-3 block text-base font-medium"
+                    style={{ color: isDark ? "white" : "" }}
+                  >
+                    INDIA
+                  </span>
                 </div>
               </Dialog.Panel>
             </Transition.Child>
@@ -162,12 +203,11 @@ function Navbar() {
         </Dialog>
       </Transition.Root>
 
-      <header className="relative bg-white">
+      <header>
         <p
-          className="flex h-10 items-center justify-center bg-pink-600 px-4 text-sm font-medium text-white sm:px-6 lg:px-8"
+          className="flex h-10 items-center justify-center px-4 text-sm font-medium text-white sm:px-6 lg:px-8"
           style={{
-            backgroundColor: mode === "dark" ? "rgb(62 64 66)" : "",
-            color: mode === "dark" ? "white" : "",
+            backgroundColor: isDark ? "rgb(62 64 66)" : "rgb(219 39 119)",
           }}
         >
           Get free delivery on orders over ₹300
@@ -175,31 +215,31 @@ function Navbar() {
 
         <nav
           aria-label="Top"
-          className="bg-gray-100 px-4 sm:px-6 lg:px-8 shadow-xl "
+          className="px-4 shadow-xl sm:px-6 lg:px-8"
           style={{
-            backgroundColor: mode === "dark" ? "#282c34" : "",
-            color: mode === "dark" ? "white" : "",
+            backgroundColor: isDark ? "#282c34" : "rgb(243 244 246)",
+            color: isDark ? "white" : "black",
           }}
         >
-          <div className="">
+          <div>
             <div className="flex h-16 items-center">
               <button
                 type="button"
-                className="rounded-md bg-white p-2 text-gray-400 lg:hidden"
+                className="rounded-md p-2 lg:hidden"
                 onClick={() => setOpen(true)}
                 style={{
-                  backgroundColor: mode === "dark" ? "rgb(80 82 87)" : "",
-                  color: mode === "dark" ? "white" : "",
+                  backgroundColor: isDark ? "rgb(80 82 87)" : "white",
+                  color: isDark ? "white" : "rgb(156 163 175)",
                 }}
+                aria-label="Open menu"
               >
-                <span className="sr-only">Open menu</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth="1.5"
                   stroke="currentColor"
-                  className="w-6 h-6"
+                  className="h-6 w-6"
                 >
                   <path
                     strokeLinecap="round"
@@ -209,131 +249,118 @@ function Navbar() {
                 </svg>
               </button>
 
-              {/* laptop screen */}
-              {/* Logo */}
               <div className="ml-4 flex lg:ml-0">
-                <Link to={"/"} className="flex">
-                  <div className="flex ">
-                    <h1
-                      className=" text-2xl font-bold text-black  px-2 py-1 rounded hover:text-red-700"
-                      style={{ color: mode === "dark" ? "white" : "" }}
-                    >
-                      E-Bharat
-                    </h1>
-                  </div>
+                <Link to="/" className="flex">
+                  <h1
+                    className="rounded px-2 py-1 text-2xl font-bold hover:text-red-700"
+                    style={{ color: isDark ? "white" : "black" }}
+                  >
+                    E-Bharat
+                  </h1>
                 </Link>
               </div>
 
-              <div className="ml-auto flex items-center ">
-                <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:space-x-6 ">
+              <div className="ml-auto flex items-center">
+                <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:space-x-6">
                   <Link
-                    to={"/"}
-                    className="text-sm font-medium  hover:text-pink-700 text-gray-700"
-                    style={{ color: mode === "dark" ? "white" : "" }}
+                    to="/"
+                    className="text-sm font-medium hover:text-pink-700"
+                    style={{ color: isDark ? "white" : "" }}
                   >
                     Home
                   </Link>
 
                   <Link
-                    to={"/allproducts"}
-                    className="text-sm font-medium hover:text-red-700 text-gray-700"
-                    style={{ color: mode === "dark" ? "white" : "" }}
+                    to="/allproducts"
+                    className="text-sm font-medium hover:text-red-700"
+                    style={{ color: isDark ? "white" : "" }}
                   >
                     All Products
                   </Link>
 
                   {user ? (
                     <Link
-                      to={"/order"}
-                      className="text-sm font-medium  hover:text-red-700 text-gray-700"
-                      style={{ color: mode === "dark" ? "white" : "" }}
+                      to="/order"
+                      className="text-sm font-medium hover:text-red-700"
+                      style={{ color: isDark ? "white" : "" }}
                     >
                       Order
                     </Link>
                   ) : (
                     <Link
-                      to={"/signup"}
-                      className="text-sm font-medium text-gray-700 hover:text-red-700 "
-                      style={{ color: mode === "dark" ? "white" : "" }}
+                      to="/signup"
+                      className="text-sm font-medium hover:text-red-700"
+                      style={{ color: isDark ? "white" : "" }}
                     >
                       Signup
                     </Link>
                   )}
 
-                  {user?.user?.email === "abhishekmahur05@gmail.com" ? (
+                  {isAdmin && (
                     <Link
-                      to={"/dashboard"}
-                      className="text-sm font-medium  hover:text-red-700 text-gray-700"
-                      style={{ color: mode === "dark" ? "white" : "" }}
+                      to="/dashboard"
+                      className="text-sm font-medium hover:text-red-700"
+                      style={{ color: isDark ? "white" : "" }}
                     >
                       Admin
                     </Link>
-                  ) : (
-                    ""
                   )}
 
-                  {user ? (
-                    <a
+                  {user && (
+                    <button
+                      type="button"
                       onClick={logout}
-                      className="text-sm font-medium text-gray-700 cursor-pointer hover:text-red-700  "
-                      style={{ color: mode === "dark" ? "white" : "" }}
+                      className="cursor-pointer text-sm font-medium hover:text-red-700"
+                      style={{ color: isDark ? "white" : "" }}
                     >
                       Logout
-                    </a>
-                  ) : (
-                    ""
+                    </button>
                   )}
                 </div>
 
                 <div className="hidden lg:ml-8 lg:flex">
-                  <a href="#" className="flex items-center text-gray-700 ">
-                    <img
-                      src="https://ecommerce-sk.vercel.app/img/indiaflag.png"
-                      alt=""
-                      className="block h-auto w-5 flex-shrink-0"
-                    />
-                    <span
-                      className="ml-3 block text-sm font-medium hover:text-red-700 "
-                      style={{ color: mode === "dark" ? "white" : "" }}
-                    >
-                      INDIA
-                    </span>
-                  </a>
+                  <span
+                    className="text-sm font-medium"
+                    style={{ color: isDark ? "white" : "" }}
+                  >
+                    INDIA
+                  </span>
                 </div>
 
-                {/* proflie */}
-                <div className="hidden lg:ml-8 lg:flex">
-                  <Link to={"/profile"}>
-                    <a href="#" className="flex items-center text-gray-700  ">
+                {user && (
+                  <div className="hidden lg:ml-8 lg:flex">
+                    <Link to="/profile" aria-label="Open profile">
                       <img
-                        className="inline-block w-10 h-9 rounded-full  border-black "
+                        className="inline-block h-9 w-10 rounded-full border border-black"
                         src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4mYGiDHOtUVcSxuzNfeds4xWXNOpQ-lIMPA&usqp=CAU"
-                        alt="user-profile"
+                        alt="User profile"
                       />
-                    </a>
-                  </Link>
-                </div>
+                    </Link>
+                  </div>
+                )}
 
-                {/* light mode */}
-                <div className="flex  lg:ml-6  ">
-                  <button className="" onClick={toggleMode}>
-                    {mode === "light" ? (
-                      <FiSun className="hover:text-red-700" size={30} />
-                    ) : // eslint-disable-next-line no-constant-condition
-                    "dark" ? (
-                      <BsFillCloudSunFill size={30} />
+                <div className="flex lg:ml-6">
+                  <button
+                    type="button"
+                    onClick={toggleMode}
+                    aria-label="Toggle dark mode"
+                  >
+                    {isDark ? (
+                      <BsFillCloudSunFill
+                        className="hover:text-red-700"
+                        size={30}
+                      />
                     ) : (
-                      ""
+                      <FiSun className="hover:text-red-700" size={30} />
                     )}
                   </button>
                 </div>
 
-                {/* Cart */}
-                <div className="ml-4 flow-root lg:ml-6 ">
+                <div className="ml-4 flow-root lg:ml-6">
                   <Link
-                    to={"/cart"}
+                    to="/cart"
                     className="group -m-2 flex items-center p-2 hover:text-red-700"
-                    style={{ color: mode === "dark" ? "white " : "" }}
+                    style={{ color: isDark ? "white" : "" }}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -341,22 +368,25 @@ function Navbar() {
                       viewBox="0 0 24 24"
                       strokeWidth={1.5}
                       stroke="currentColor"
-                      className="w-6 h-6"
+                      className="h-6 w-6"
                     >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
+                        d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 01-1.5 0z"
                       />
                     </svg>
 
                     <span
-                      className="ml-2 text-sm font-medium text-gray-700 group- "
-                      style={{ color: mode === "dark" ? "white" : "" }}
+                      className="ml-2 text-sm font-medium"
+                      style={{ color: isDark ? "white" : "" }}
                     >
-                      {cartItems.length}
+                      {cartCount}
                     </span>
-                    <span className="sr-only">items in cart, view bag</span>
+
+                    <span className="sr-only">
+                      {cartCount} items in cart, view cart
+                    </span>
                   </Link>
                 </div>
               </div>

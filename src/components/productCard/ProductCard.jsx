@@ -1,93 +1,113 @@
-import { useContext, useEffect } from "react";
-import myContext from "../../context/data/myContext";
-import { useDispatch, useSelector } from "react-redux";
-import { addToCart } from "../../redux/cartSlice";
+import { useContext } from "react";
+import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
+import myContext from "../../context/data/myContext";
+import { addToCart } from "../../redux/cartSlice";
 
 function ProductCard() {
-  const context = useContext(myContext);
-  const { mode, product, searchkey } = context;
-
+  const { mode, product, searchkey } = useContext(myContext);
   const dispatch = useDispatch();
-  const cartItems = useSelector((state) => state.cart);
-  // console.log(cartItems);
 
-  const addCart = (product) => {
-    dispatch(addToCart(product));
-    toast.success("add to cart");
+  const isDark = mode === "dark";
+  const searchTerm = (searchkey || "").trim().toLowerCase();
+
+  const addCart = (item) => {
+    if (!item?.id) {
+      toast.error("Product is not available");
+      return;
+    }
+
+    dispatch(addToCart(item));
+    toast.success("Added to cart");
   };
 
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cartItems));
-  }, [cartItems]);
+  const filteredProducts = (Array.isArray(product) ? product : [])
+    .filter((item) => {
+      if (!searchTerm) return true;
+
+      const title = item.title?.toLowerCase() || "";
+      const category = item.category?.toLowerCase() || "";
+
+      return title.includes(searchTerm) || category.includes(searchTerm);
+    })
+    .slice(0, 4);
 
   return (
-    <section className="text-gray-600 body-font">
-      <div className="container px-5 py-8 pb-20 md:py-16 mx-auto">
-        <div className="lg:w-1/2 w-full mb-6 lg:mb-10">
+    <section className="body-font text-gray-600">
+      <div className="container mx-auto px-5 py-8 pb-20 md:py-16">
+        <div className="mb-6 w-full lg:mb-10 lg:w-1/2">
           <h1
-            className="sm:text-3xl text-2xl font-medium title-font mb-2 text-gray-900"
-            style={{ color: mode === "dark" ? "white" : "" }}
+            className="title-font mb-2 text-2xl font-medium text-gray-900 sm:text-3xl"
+            style={{
+              color: isDark ? "white" : "",
+            }}
           >
             Our Latest Collection
           </h1>
-          <div className="h-1 w-20 bg-pink-600 rounded"></div>
+
+          <div className="h-1 w-20 rounded bg-pink-600" />
         </div>
 
-        <div className="flex flex-wrap justify-center -m-4">
-          {product
-            .filter((obj) =>
-              obj.category.toLowerCase().includes(searchkey.toLowerCase())
-            )
-            .slice(0, 4)
-            .map((item, index) => {
-              const { title, price, imageUrl, id } = item;
+        {filteredProducts.length > 0 ? (
+          <div className="flex flex-wrap justify-center -m-4">
+            {filteredProducts.map((item) => {
+              const { id, title, price, imageUrl } = item;
+
               return (
-                <div key={index} className="p-4 md:w-1/4  drop-shadow-lg ">
+                <div key={id} className="w-full p-4 md:w-1/2 lg:w-1/4">
                   <div
-                    className="h-full border-2 hover:shadow-gray-100 hover:shadow-2xl transition-shadow duration-300 ease-in-out    border-gray-200 border-opacity-60 rounded-2xl overflow-hidden"
+                    className="h-full overflow-hidden rounded-2xl border-2 border-gray-200 border-opacity-60 drop-shadow-lg transition-shadow duration-300 ease-in-out hover:shadow-2xl"
                     style={{
-                      backgroundColor: mode === "dark" ? "rgb(46 49 55)" : "",
-                      color: mode === "dark" ? "white" : "",
+                      backgroundColor: isDark ? "rgb(46 49 55)" : "",
+                      color: isDark ? "white" : "",
                     }}
                   >
-                    <div
-                      onClick={() =>
-                        (window.location.href = `/productinfo/${id}`)
-                      }
-                      className="flex justify-center cursor-pointer"
+                    <Link
+                      to={`/productinfo/${id}`}
+                      className="flex cursor-pointer justify-center overflow-hidden"
                     >
                       <img
-                        className=" rounded-2xl w-full h-80 p-2 hover:scale-110 transition-scale-110  duration-300 ease-in-out"
+                        className="h-80 w-full rounded-2xl object-cover p-2 transition-transform duration-300 ease-in-out hover:scale-110"
                         src={imageUrl}
-                        alt="blog"
+                        alt={title || "Product"}
+                        loading="lazy"
                       />
-                    </div>
-                    <div className="p-5 border-t-2">
+                    </Link>
+
+                    <div className="border-t-2 p-5">
                       <h2
-                        className="tracking-widest text-xs title-font font-medium text-gray-400 mb-1"
-                        style={{ color: mode === "dark" ? "white" : "" }}
+                        className="title-font mb-1 text-xs font-medium tracking-widest text-gray-400"
+                        style={{
+                          color: isDark ? "white" : "",
+                        }}
                       >
                         E-Bharat
                       </h2>
+
                       <h1
-                        className="title-font text-lg font-medium text-gray-900 mb-3"
-                        style={{ color: mode === "dark" ? "white" : "" }}
+                        className="title-font mb-3 text-lg font-medium text-gray-900"
+                        style={{
+                          color: isDark ? "white" : "",
+                        }}
                       >
-                        {title}
+                        {title || "Untitled Product"}
                       </h1>
-                      {/* <p className="leading-relaxed mb-3">{item.description.}</p> */}
+
                       <p
-                        className="leading-relaxed mb-3"
-                        style={{ color: mode === "dark" ? "white" : "" }}
+                        className="mb-3 leading-relaxed"
+                        style={{
+                          color: isDark ? "white" : "",
+                        }}
                       >
-                        ₹{price}
+                        ₹{Number(price || 0).toLocaleString("en-IN")}
                       </p>
-                      <div className=" flex justify-center">
+
+                      <div className="flex justify-center">
                         <button
                           type="button"
                           onClick={() => addCart(item)}
-                          className="focus:outline-none text-white bg-pink-600 hover:bg-pink-700 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm w-full  py-2"
+                          className="w-full rounded-lg bg-pink-600 py-2 text-sm font-medium text-white hover:bg-pink-700 focus:outline-none focus:ring-4 focus:ring-purple-300"
                         >
                           Add To Cart
                         </button>
@@ -97,7 +117,17 @@ function ProductCard() {
                 </div>
               );
             })}
-        </div>
+          </div>
+        ) : (
+          <p
+            className="py-10 text-center text-lg"
+            style={{
+              color: isDark ? "white" : "",
+            }}
+          >
+            No products found.
+          </p>
+        )}
       </div>
     </section>
   );

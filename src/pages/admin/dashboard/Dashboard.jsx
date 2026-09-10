@@ -1,134 +1,87 @@
 import { useContext } from "react";
-import { FaUserTie } from "react-icons/fa";
+import { FaBoxOpen, FaShoppingCart, FaUserTie } from "react-icons/fa";
+
 import myContext from "../../../context/data/myContext";
 import Layout from "../../../components/layout/Layout";
+import Loader from "../../../components/loader/Loader";
 import DashboardTab from "./DashboardTab";
 
 function Dashboard() {
-  const context = useContext(myContext);
-  const { mode, order, product, user } = context;
+  const {
+    mode,
+    order,
+    product,
+    user,
+    productLoading,
+    orderLoading,
+    userLoading,
+  } = useContext(myContext);
+
+  const isDark = mode === "dark";
+
+  const stats = [
+    {
+      icon: <FaBoxOpen size={50} />,
+      count: Array.isArray(product) ? product.length : 0,
+      label: "Total Products",
+    },
+    {
+      icon: <FaShoppingCart size={50} />,
+      count: Array.isArray(order) ? order.length : 0,
+      label: "Total Orders",
+    },
+    {
+      icon: <FaUserTie size={50} />,
+      count: Array.isArray(user) ? user.length : 0,
+      label: "Total Users",
+    },
+  ];
+
+  const loading = productLoading || orderLoading || userLoading;
+
   return (
     <Layout>
-      <section className="text-gray-600 body-font mt-10 mb-10">
-        <div className="container px-5 mx-auto mb-10">
-          <div className="flex flex-wrap -m-4 text-center justify-center">
-            <div className="p-4 md:w-1/4 sm:w-1/2 w-full">
-              <div
-                className=" border-2 hover:shadow-purple-600 shadow-[inset_0_0_10px_rgba(0,0,0,0.6)] bg-gray-100 border-gray-300    px-4 py-3 rounded-xl"
-                style={{
-                  backgroundColor: mode === "dark" ? "rgb(46 49 55)" : "",
-                  color: mode === "dark" ? "white" : "",
-                }}
-              >
+      {loading && <Loader />}
+
+      <section className="body-font mt-10 mb-10 text-gray-600">
+        <div className="container mx-auto mb-10 px-5">
+          <div className="flex flex-wrap justify-center -m-4 text-center">
+            {stats.map((stat) => (
+              <div key={stat.label} className="w-full p-4 sm:w-1/2 md:w-1/4">
                 <div
-                  className="text-purple-500 w-12 h-12 mb-3 inline-block"
-                  // eslint-disable-next-line react/no-unknown-property
-                  viewBox="0 0 24 24"
+                  className="rounded-xl border-2 border-gray-300 bg-gray-100 px-4 py-3 shadow-[inset_0_0_10px_rgba(0,0,0,0.6)] hover:shadow-purple-600"
+                  style={{
+                    backgroundColor: isDark ? "rgb(46 49 55)" : "",
+                    color: isDark ? "white" : "",
+                  }}
                 >
-                  <FaUserTie size={50} />
+                  <div className="mb-3 inline-flex h-12 w-12 items-center justify-center text-purple-500">
+                    {stat.icon}
+                  </div>
+
+                  <h2
+                    className="title-font fonts1 text-3xl font-medium text-black"
+                    style={{
+                      color: isDark ? "white" : "",
+                    }}
+                  >
+                    {stat.count}
+                  </h2>
+
+                  <p
+                    className="font-bold text-purple-500"
+                    style={{
+                      color: isDark ? "white" : "",
+                    }}
+                  >
+                    {stat.label}
+                  </p>
                 </div>
-                <h2
-                  className="title-font font-medium text-3xl text-black fonts1"
-                  style={{ color: mode === "dark" ? "white" : "" }}
-                >
-                  {product.length}
-                </h2>
-                <p
-                  className=" text-purple-500  font-bold"
-                  style={{ color: mode === "dark" ? "white" : "" }}
-                >
-                  Total Products
-                </p>
               </div>
-            </div>
-            <div className="p-4 md:w-1/4 sm:w-1/2 w-full">
-              <div
-                className=" border-2 hover:shadow-purple-600 shadow-[inset_0_0_10px_rgba(0,0,0,0.6)] bg-gray-100 border-gray-300    px-4 py-3 rounded-xl"
-                style={{
-                  backgroundColor: mode === "dark" ? "rgb(46 49 55)" : "",
-                  color: mode === "dark" ? "white" : "",
-                }}
-              >
-                <div
-                  className="text-purple-500 w-12 h-12 mb-3 inline-block"
-                  // eslint-disable-next-line react/no-unknown-property
-                  viewBox="0 0 24 24"
-                >
-                  <FaUserTie size={50} />
-                </div>
-                <h2
-                  className="title-font font-medium text-3xl text-black fonts1"
-                  style={{ color: mode === "dark" ? "white" : "" }}
-                >
-                  {order.length}
-                </h2>
-                <p
-                  className=" text-purple-500  font-bold"
-                  style={{ color: mode === "dark" ? "white" : "" }}
-                >
-                  Total Orders
-                </p>
-              </div>
-            </div>
-            <div className="p-4 md:w-1/4 sm:w-1/2 w-full">
-              <div
-                className=" border-2 hover:shadow-purple-600 shadow-[inset_0_0_10px_rgba(0,0,0,0.6)] bg-gray-100 border-gray-300    px-4 py-3 rounded-xl"
-                style={{
-                  backgroundColor: mode === "dark" ? "rgb(46 49 55)" : "",
-                  color: mode === "dark" ? "white" : "",
-                }}
-              >
-                <div
-                  className="text-purple-500 w-12 h-12 mb-3 inline-block"
-                  // eslint-disable-next-line react/no-unknown-property
-                  viewBox="0 0 24 24"
-                >
-                  <FaUserTie size={50} />
-                </div>
-                <h2
-                  className="title-font font-medium text-3xl text-black fonts1"
-                  style={{ color: mode === "dark" ? "white" : "" }}
-                >
-                  {user.length}
-                </h2>
-                <p
-                  className=" text-purple-500  font-bold"
-                  style={{ color: mode === "dark" ? "white" : "" }}
-                >
-                  Total Users
-                </p>
-              </div>
-            </div>
-            {/* <div className="p-4 md:w-1/4 sm:w-1/2 w-full">
-              <div
-                className=" border-2 hover:shadow-purple-600 shadow-[inset_0_0_10px_rgba(0,0,0,0.6)] bg-gray-100 border-gray-300    px-4 py-3 rounded-xl"
-                style={{
-                  backgroundColor: mode === "dark" ? "rgb(46 49 55)" : "",
-                  color: mode === "dark" ? "white" : "",
-                }}
-              >
-                <div
-                  className="text-purple-500 w-12 h-12 mb-3 inline-block"
-                  viewBox="0 0 24 24"
-                >
-                  <FaUserTie size={50} />
-                </div>
-                <h2
-                  className="title-font font-medium text-3xl text-black fonts1"
-                  style={{ color: mode === "dark" ? "white" : "" }}
-                >
-                  20
-                </h2>
-                <p
-                  className=" text-purple-500  font-bold"
-                  style={{ color: mode === "dark" ? "white" : "" }}
-                >
-                  Total Products
-                </p>
-              </div>
-            </div> */}
+            ))}
           </div>
         </div>
+
         <DashboardTab />
       </section>
     </Layout>

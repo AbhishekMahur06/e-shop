@@ -1,496 +1,456 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
-import myContext from "../../../context/data/myContext";
-import Layout from "../../../components/layout/Layout";
 import { MdOutlineProductionQuantityLimits } from "react-icons/md";
 import { FaUser, FaCartPlus } from "react-icons/fa";
-import { AiFillShopping, AiFillPlusCircle, AiFillDelete } from "react-icons/ai";
-import { Link } from "react-router-dom";
+import { AiFillShopping } from "react-icons/ai";
+import { Link, useNavigate } from "react-router-dom";
+
+import myContext from "../../../context/data/myContext";
 
 function DashboardTab() {
-  const context = useContext(myContext);
-  const { mode, product, edithandle, deleteProduct, order, user } = context;
+  const { mode, product, edithandle, deleteProduct, order, user } =
+    useContext(myContext);
 
-  // console.log(product)
-  let [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+  const isDark = mode === "dark";
 
-  function closeModal() {
-    setIsOpen(false);
-  }
+  const products = Array.isArray(product) ? product : [];
+  const orders = Array.isArray(order) ? order : [];
+  const users = Array.isArray(user) ? user : [];
 
-  function openModal() {
-    setIsOpen(true);
-  }
-
-  const add = () => {
-    window.location.href = "/addproduct";
+  const addProduct = () => {
+    navigate("/addproduct");
   };
+
+  const handleDelete = async (item) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${item?.title || "this product"}"?`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    await deleteProduct(item);
+  };
+
+  const formatPrice = (price) => {
+    const value = Number(price);
+
+    if (!Number.isFinite(value)) {
+      return "0";
+    }
+
+    return value.toLocaleString("en-IN");
+  };
+
   return (
-    <>
-      <div className="container mx-auto">
-        <div className="tab container mx-auto ">
-          <Tabs defaultIndex={0} className=" ">
-            <TabList className="md:flex md:space-x-8 bg-  grid grid-cols-2 text-center gap-4   md:justify-center mb-10 ">
-              <Tab>
-                <button
-                  type="button"
-                  className="font-medium border-b-2 hover:shadow-purple-700 border-purple-500 text-purple-500 rounded-lg text-xl shadow-[inset_0_0_8px_rgba(0,0,0,0.6)]  px-5 py-1.5 text-center bg-[#605d5d12] "
-                >
-                  <div className="flex gap-2 items-center">
-                    <MdOutlineProductionQuantityLimits />
-                    Products
-                  </div>
-                </button>
-              </Tab>
-              <Tab>
-                <button
-                  type="button"
-                  className="font-medium border-b-2 border-pink-500 bg-[#605d5d12] text-pink-500  hover:shadow-pink-700  rounded-lg text-xl shadow-[inset_0_0_8px_rgba(0,0,0,0.6)]    px-5 py-1.5 text-center "
-                >
-                  <div className="flex gap-2 items-center">
-                    <AiFillShopping /> Order
-                  </div>
-                </button>
-              </Tab>
-              <Tab>
-                <button
-                  type="button"
-                  className="font-medium border-b-2 border-green-500 bg-[#605d5d12] text-green-500 rounded-lg text-xl  hover:shadow-green-700 shadow-[inset_0_0_8px_rgba(0,0,0,0.6)]   px-5 py-1.5 text-center "
-                >
-                  <div className="flex gap-2 items-center">
-                    <FaUser /> Users
-                  </div>
-                </button>
-              </Tab>
-            </TabList>
-            {/* product  */}
-            <TabPanel>
-              <div className="  px-4 md:px-0 mb-16">
-                <h1
-                  className=" text-center mb-5 text-3xl font-semibold underline"
-                  style={{ color: mode === "dark" ? "white" : "" }}
-                >
-                  Product Details
-                </h1>
-                <div className=" flex justify-end">
-                  <button
-                    onClick={add}
-                    type="button"
-                    className="focus:outline-none text-white bg-pink-600 shadow-[inset_0_0_10px_rgba(0,0,0,0.6)] border hover:bg-pink-700 outline-0 font-medium rounded-lg text-sm px-5 py-2.5 mb-2"
-                    style={{
-                      backgroundColor: mode === "dark" ? "rgb(46 49 55)" : "",
-                      color: mode === "dark" ? "white" : "",
-                    }}
-                  >
-                    {" "}
-                    <div className="flex gap-2 items-center">
-                      Add Product <FaCartPlus size={20} />
-                    </div>
-                  </button>
+    <div className="container mx-auto">
+      <div className="tab container mx-auto">
+        <Tabs defaultIndex={0}>
+          <TabList className="mb-10 grid grid-cols-2 gap-4 text-center md:flex md:justify-center md:space-x-8">
+            <Tab>
+              <button
+                type="button"
+                className="rounded-lg border-b-2 border-purple-500 bg-[#605d5d12] px-5 py-1.5 text-center text-xl font-medium text-purple-500 shadow-[inset_0_0_8px_rgba(0,0,0,0.6)] hover:shadow-purple-700"
+              >
+                <div className="flex items-center gap-2">
+                  <MdOutlineProductionQuantityLimits />
+                  Products
                 </div>
-                <div className="relative overflow-x-auto ">
-                  <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400  ">
-                    <thead
-                      className="text-xs border border-gray-600 text-black uppercase bg-gray-200 shadow-[inset_0_0_8px_rgba(0,0,0,0.6)]"
-                      style={{
-                        backgroundColor: mode === "dark" ? "rgb(46 49 55)" : "",
-                        color: mode === "dark" ? "white" : "",
-                      }}
-                    >
-                      <tr>
-                        <th scope="col" className="px-6 py-3">
-                          S.No
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                          Image
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                          Title
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                          Price
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                          Category
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                          Date
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                          Action
-                        </th>
-                      </tr>
-                    </thead>
-                    {product.map((item, index) => {
-                      const {
-                        title,
-                        price,
-                        imageUrl,
-                        category,
-                        description,
-                        date,
-                      } = item;
-                      return (
-                        <tbody key={index} className="">
-                          <tr
-                            className="bg-gray-50 border-b  dark:border-gray-700"
-                            style={{
-                              backgroundColor:
-                                mode === "dark" ? "rgb(46 49 55)" : "",
-                              color: mode === "dark" ? "white" : "",
-                            }}
-                          >
-                            <td
-                              className="px-6 py-4 text-black "
-                              style={{ color: mode === "dark" ? "white" : "" }}
-                            >
-                              {index + 1}.
-                            </td>
-                            <th
-                              scope="row"
-                              className="px-6 py-4 font-medium text-black whitespace-nowrap"
-                            >
-                              <img className="w-16" src={imageUrl} alt="img" />
-                            </th>
-                            <td
-                              className="px-6 py-4 text-black "
-                              style={{ color: mode === "dark" ? "white" : "" }}
-                            >
-                              {title}
-                            </td>
-                            <td
-                              className="px-6 py-4 text-black "
-                              style={{ color: mode === "dark" ? "white" : "" }}
-                            >
-                              ₹{price}
-                            </td>
-                            <td
-                              className="px-6 py-4 text-black "
-                              style={{ color: mode === "dark" ? "white" : "" }}
-                            >
-                              {category}
-                            </td>
-                            <td
-                              className="px-6 py-4 text-black "
-                              style={{ color: mode === "dark" ? "white" : "" }}
-                            >
-                              {date}
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className=" flex gap-2">
-                                <div
-                                  className=" flex gap-2 cursor-pointer text-black "
-                                  style={{
-                                    color: mode === "dark" ? "white" : "",
-                                  }}
-                                >
-                                  <div onClick={() => deleteProduct(item)}>
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      strokeWidth={1.5}
-                                      stroke="currentColor"
-                                      className="w-6 h-6"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                                      />
-                                    </svg>
-                                  </div>
+              </button>
+            </Tab>
 
-                                  <Link to={"/updateproduct"}>
-                                    <div onClick={() => edithandle(item)}>
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth={1.5}
-                                        stroke="currentColor"
-                                        className="w-6 h-6"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
-                                        />
-                                      </svg>
-                                    </div>
-                                  </Link>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        </tbody>
-                      );
-                    })}
-                  </table>
+            <Tab>
+              <button
+                type="button"
+                className="rounded-lg border-b-2 border-pink-500 bg-[#605d5d12] px-5 py-1.5 text-center text-xl font-medium text-pink-500 shadow-[inset_0_0_8px_rgba(0,0,0,0.6)] hover:shadow-pink-700"
+              >
+                <div className="flex items-center gap-2">
+                  <AiFillShopping />
+                  Order
                 </div>
-              </div>
-            </TabPanel>
+              </button>
+            </Tab>
 
-            <TabPanel>
-              {/* <Order order={order} setOrder={setOrder} setLoading={setLoading} /> */}
-              <div className="relative overflow-x-auto mb-16">
-                <h1
-                  className=" text-center mb-5 text-3xl font-semibold underline"
-                  style={{ color: mode === "dark" ? "white" : "" }}
+            <Tab>
+              <button
+                type="button"
+                className="rounded-lg border-b-2 border-green-500 bg-[#605d5d12] px-5 py-1.5 text-center text-xl font-medium text-green-500 shadow-[inset_0_0_8px_rgba(0,0,0,0.6)] hover:shadow-green-700"
+              >
+                <div className="flex items-center gap-2">
+                  <FaUser />
+                  Users
+                </div>
+              </button>
+            </Tab>
+          </TabList>
+
+          {/* Products */}
+          <TabPanel>
+            <div className="mb-16 px-4 md:px-0">
+              <h1
+                className="mb-5 text-center text-3xl font-semibold underline"
+                style={{
+                  color: isDark ? "white" : "",
+                }}
+              >
+                Product Details
+              </h1>
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={addProduct}
+                  className="mb-2 rounded-lg border bg-pink-600 px-5 py-2.5 text-sm font-medium text-white shadow-[inset_0_0_10px_rgba(0,0,0,0.6)] hover:bg-pink-700"
+                  style={{
+                    backgroundColor: isDark ? "rgb(46 49 55)" : "",
+                    color: isDark ? "white" : "",
+                  }}
                 >
-                  Order Details
-                </h1>
-
-                {order.map((allorder, index) => {
-                  return (
-                    <table
-                      key={index}
-                      className="w-full text-sm text-left text-gray-500 dark:text-gray-400"
-                    >
-                      <thead
-                        className="text-xs text-black uppercase bg-gray-200 "
-                        style={{
-                          backgroundColor:
-                            mode === "dark" ? "rgb(46 49 55)" : "",
-                          color: mode === "dark" ? "white" : "",
-                        }}
-                      >
-                        <tr>
-                          <th scope="col" className="px-6 py-3">
-                            Payment Id
-                          </th>
-                          <th scope="col" className="px-6 py-3">
-                            Image
-                          </th>
-                          <th scope="col" className="px-6 py-3">
-                            Title
-                          </th>
-                          <th scope="col" className="px-6 py-3">
-                            Price
-                          </th>
-                          <th scope="col" className="px-6 py-3">
-                            Category
-                          </th>
-                          <th scope="col" className="px-6 py-3">
-                            Name
-                          </th>
-                          <th scope="col" className="px-6 py-3">
-                            Address
-                          </th>
-                          <th scope="col" className="px-6 py-3">
-                            Pincode
-                          </th>
-                          <th scope="col" className="px-6 py-3">
-                            Phone Number
-                          </th>
-                          <th scope="col" className="px-6 py-3">
-                            Email
-                          </th>
-                          <th scope="col" className="px-6 py-3">
-                            Date
-                          </th>
-                        </tr>
-                      </thead>
-                      {allorder.cartItems.map((item, index) => {
-                        // console.log(allorder)
-                        const {
-                          title,
-                          description,
-                          category,
-                          imageUrl,
-                          price,
-                        } = item;
-                        return (
-                          <tbody key={index}>
-                            <tr
-                              className="bg-gray-50 border-b  dark:border-gray-700"
-                              style={{
-                                backgroundColor:
-                                  mode === "dark" ? "rgb(46 49 55)" : "",
-                                color: mode === "dark" ? "white" : "",
-                              }}
-                            >
-                              <td
-                                className="px-6 py-4 text-black "
-                                style={{
-                                  color: mode === "dark" ? "white" : "",
-                                }}
-                              >
-                                {allorder.paymentId}
-                              </td>
-                              <th
-                                scope="row"
-                                className="px-6 py-4 font-medium text-black whitespace-nowrap"
-                              >
-                                <img
-                                  className="w-16"
-                                  src={imageUrl}
-                                  alt="img"
-                                />
-                              </th>
-                              <td
-                                className="px-6 py-4 text-black "
-                                style={{
-                                  color: mode === "dark" ? "white" : "",
-                                }}
-                              >
-                                {title}
-                              </td>
-                              <td
-                                className="px-6 py-4 text-black "
-                                style={{
-                                  color: mode === "dark" ? "white" : "",
-                                }}
-                              >
-                                ₹{price}
-                              </td>
-                              <td
-                                className="px-6 py-4 text-black "
-                                style={{
-                                  color: mode === "dark" ? "white" : "",
-                                }}
-                              >
-                                {category}
-                              </td>
-
-                              <td
-                                className="px-6 py-4 text-black "
-                                style={{
-                                  color: mode === "dark" ? "white" : "",
-                                }}
-                              >
-                                {allorder.addressInfo.name}
-                              </td>
-                              <td
-                                className="px-6 py-4 text-black "
-                                style={{
-                                  color: mode === "dark" ? "white" : "",
-                                }}
-                              >
-                                {allorder.addressInfo.address}
-                              </td>
-                              <td
-                                className="px-6 py-4 text-black "
-                                style={{
-                                  color: mode === "dark" ? "white" : "",
-                                }}
-                              >
-                                {allorder.addressInfo.pincode}
-                              </td>
-                              <td
-                                className="px-6 py-4 text-black "
-                                style={{
-                                  color: mode === "dark" ? "white" : "",
-                                }}
-                              >
-                                {allorder.addressInfo.phoneNumber}
-                              </td>
-                              <td
-                                className="px-6 py-4 text-black "
-                                style={{
-                                  color: mode === "dark" ? "white" : "",
-                                }}
-                              >
-                                {allorder.email}
-                              </td>
-                              <td
-                                className="px-6 py-4 text-black "
-                                style={{
-                                  color: mode === "dark" ? "white" : "",
-                                }}
-                              >
-                                {allorder.date}
-                              </td>
-                            </tr>
-                          </tbody>
-                        );
-                      })}
-                    </table>
-                  );
-                })}
+                  <div className="flex items-center gap-2">
+                    Add Product
+                    <FaCartPlus size={20} />
+                  </div>
+                </button>
               </div>
-            </TabPanel>
 
-            <TabPanel>
-              {/* <User addressInfo={addressInfo} setAddressInfo={setAddressInfo} setLoading={setLoading} /> */}
-              <div className="relative overflow-x-auto mb-10">
-                <h1
-                  className=" text-center mb-5 text-3xl font-semibold underline"
-                  style={{ color: mode === "dark" ? "white" : "" }}
-                >
-                  User Details
-                </h1>
-                <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+              <div className="relative overflow-x-auto">
+                <table className="w-full text-left text-sm text-gray-500">
                   <thead
-                    className="text-xs text-black uppercase bg-gray-200 "
+                    className="border border-gray-600 bg-gray-200 text-xs uppercase text-black shadow-[inset_0_0_8px_rgba(0,0,0,0.6)]"
                     style={{
-                      backgroundColor: mode === "dark" ? "rgb(46 49 55)" : "",
-                      color: mode === "dark" ? "white" : "",
+                      backgroundColor: isDark ? "rgb(46 49 55)" : "",
+                      color: isDark ? "white" : "",
                     }}
                   >
                     <tr>
-                      <th scope="col" className="px-6 py-3">
-                        S.No
-                      </th>
-
-                      <th scope="col" className="px-6 py-3">
-                        Name
-                      </th>
-                      <th scope="col" className="px-6 py-3">
-                        Email
-                      </th>
-                      <th scope="col" className="px-6 py-3">
-                        Uid
-                      </th>
+                      <th className="px-6 py-3">S.No</th>
+                      <th className="px-6 py-3">Image</th>
+                      <th className="px-6 py-3">Title</th>
+                      <th className="px-6 py-3">Price</th>
+                      <th className="px-6 py-3">Category</th>
+                      <th className="px-6 py-3">Date</th>
+                      <th className="px-6 py-3">Action</th>
                     </tr>
                   </thead>
-                  {user.map((item, index) => {
-                    const { name, uid, email, date } = item;
-                    return (
-                      <tbody key={index}>
+
+                  <tbody>
+                    {products.length > 0 ? (
+                      products.map((item, index) => (
                         <tr
-                          className="bg-gray-50 border-b  dark:border-gray-700"
+                          key={item.id}
+                          className="border-b bg-gray-50"
                           style={{
-                            backgroundColor:
-                              mode === "dark" ? "rgb(46 49 55)" : "",
-                            color: mode === "dark" ? "white" : "",
+                            backgroundColor: isDark ? "rgb(46 49 55)" : "",
+                            color: isDark ? "white" : "",
                           }}
                         >
                           <td
-                            className="px-6 py-4 text-black "
-                            style={{ color: mode === "dark" ? "white" : "" }}
+                            className="px-6 py-4"
+                            style={{
+                              color: isDark ? "white" : "",
+                            }}
                           >
                             {index + 1}.
                           </td>
-                          <td
-                            className="px-6 py-4 text-black "
-                            style={{ color: mode === "dark" ? "white" : "" }}
-                          >
-                            {name}
+
+                          <td className="px-6 py-4">
+                            <img
+                              className="w-16 rounded"
+                              src={item.imageUrl}
+                              alt={item.title || "Product"}
+                              loading="lazy"
+                            />
                           </td>
+
                           <td
-                            className="px-6 py-4 text-black "
-                            style={{ color: mode === "dark" ? "white" : "" }}
+                            className="px-6 py-4"
+                            style={{
+                              color: isDark ? "white" : "",
+                            }}
                           >
-                            {email}
+                            {item.title || "N/A"}
                           </td>
+
                           <td
-                            className="px-6 py-4 text-black "
-                            style={{ color: mode === "dark" ? "white" : "" }}
+                            className="px-6 py-4"
+                            style={{
+                              color: isDark ? "white" : "",
+                            }}
                           >
-                            {uid}
+                            ₹{formatPrice(item.price)}
+                          </td>
+
+                          <td
+                            className="px-6 py-4"
+                            style={{
+                              color: isDark ? "white" : "",
+                            }}
+                          >
+                            {item.category || "N/A"}
+                          </td>
+
+                          <td
+                            className="px-6 py-4"
+                            style={{
+                              color: isDark ? "white" : "",
+                            }}
+                          >
+                            {item.date || "N/A"}
+                          </td>
+
+                          <td className="px-6 py-4">
+                            <div className="flex gap-3">
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(item)}
+                                className="text-red-500 hover:text-red-700"
+                                aria-label={`Delete ${item.title || "product"}`}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  strokeWidth={1.5}
+                                  stroke="currentColor"
+                                  className="h-6 w-6"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                                  />
+                                </svg>
+                              </button>
+
+                              <Link
+                                to="/updateproduct"
+                                onClick={() => edithandle(item)}
+                                className="text-blue-500 hover:text-blue-700"
+                                aria-label={`Edit ${item.title || "product"}`}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  strokeWidth={1.5}
+                                  stroke="currentColor"
+                                  className="h-6 w-6"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
+                                  />
+                                </svg>
+                              </Link>
+                            </div>
                           </td>
                         </tr>
-                      </tbody>
-                    );
-                  })}
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan="7"
+                          className="px-6 py-8 text-center"
+                          style={{
+                            color: isDark ? "white" : "",
+                          }}
+                        >
+                          No products found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
                 </table>
               </div>
-            </TabPanel>
-          </Tabs>
-        </div>
+            </div>
+          </TabPanel>
+
+          {/* Orders */}
+          <TabPanel>
+            <div className="relative mb-16 overflow-x-auto">
+              <h1
+                className="mb-5 text-center text-3xl font-semibold underline"
+                style={{
+                  color: isDark ? "white" : "",
+                }}
+              >
+                Order Details
+              </h1>
+
+              <table className="w-full text-left text-sm text-gray-500">
+                <thead
+                  className="bg-gray-200 text-xs uppercase"
+                  style={{
+                    backgroundColor: isDark ? "rgb(46 49 55)" : "",
+                    color: isDark ? "white" : "",
+                  }}
+                >
+                  <tr>
+                    <th className="px-6 py-3">Payment Id</th>
+                    <th className="px-6 py-3">Image</th>
+                    <th className="px-6 py-3">Title</th>
+                    <th className="px-6 py-3">Price</th>
+                    <th className="px-6 py-3">Category</th>
+                    <th className="px-6 py-3">Name</th>
+                    <th className="px-6 py-3">Address</th>
+                    <th className="px-6 py-3">Pincode</th>
+                    <th className="px-6 py-3">Phone Number</th>
+                    <th className="px-6 py-3">Email</th>
+                    <th className="px-6 py-3">Date</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {orders.length > 0 ? (
+                    orders.flatMap((allOrder) =>
+                      Array.isArray(allOrder.cartItems)
+                        ? allOrder.cartItems.map((item, index) => (
+                            <tr
+                              key={`${allOrder.id}-${item.id || index}`}
+                              className="border-b bg-gray-50"
+                              style={{
+                                backgroundColor: isDark ? "rgb(46 49 55)" : "",
+                                color: isDark ? "white" : "",
+                              }}
+                            >
+                              <td className="px-6 py-4">
+                                {allOrder.paymentId || "N/A"}
+                              </td>
+
+                              <td className="px-6 py-4">
+                                <img
+                                  className="w-16 rounded"
+                                  src={item.imageUrl}
+                                  alt={item.title || "Product"}
+                                  loading="lazy"
+                                />
+                              </td>
+
+                              <td className="px-6 py-4">
+                                {item.title || "N/A"}
+                              </td>
+
+                              <td className="px-6 py-4">
+                                ₹{formatPrice(item.price)}
+                              </td>
+
+                              <td className="px-6 py-4">
+                                {item.category || "N/A"}
+                              </td>
+
+                              <td className="px-6 py-4">
+                                {allOrder.addressInfo?.name || "N/A"}
+                              </td>
+
+                              <td className="px-6 py-4">
+                                {allOrder.addressInfo?.address || "N/A"}
+                              </td>
+
+                              <td className="px-6 py-4">
+                                {allOrder.addressInfo?.pincode || "N/A"}
+                              </td>
+
+                              <td className="px-6 py-4">
+                                {allOrder.addressInfo?.phoneNumber || "N/A"}
+                              </td>
+
+                              <td className="px-6 py-4">
+                                {allOrder.email || "N/A"}
+                              </td>
+
+                              <td className="px-6 py-4">
+                                {allOrder.date || "N/A"}
+                              </td>
+                            </tr>
+                          ))
+                        : [],
+                    )
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="11"
+                        className="px-6 py-8 text-center"
+                        style={{
+                          color: isDark ? "white" : "",
+                        }}
+                      >
+                        No orders found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </TabPanel>
+
+          {/* Users */}
+          <TabPanel>
+            <div className="relative mb-10 overflow-x-auto">
+              <h1
+                className="mb-5 text-center text-3xl font-semibold underline"
+                style={{
+                  color: isDark ? "white" : "",
+                }}
+              >
+                User Details
+              </h1>
+
+              <table className="w-full text-left text-sm text-gray-500">
+                <thead
+                  className="bg-gray-200 text-xs uppercase"
+                  style={{
+                    backgroundColor: isDark ? "rgb(46 49 55)" : "",
+                    color: isDark ? "white" : "",
+                  }}
+                >
+                  <tr>
+                    <th className="px-6 py-3">S.No</th>
+                    <th className="px-6 py-3">Name</th>
+                    <th className="px-6 py-3">Email</th>
+                    <th className="px-6 py-3">Uid</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {users.length > 0 ? (
+                    users.map((item, index) => (
+                      <tr
+                        key={item.uid || item.id || index}
+                        className="border-b bg-gray-50"
+                        style={{
+                          backgroundColor: isDark ? "rgb(46 49 55)" : "",
+                          color: isDark ? "white" : "",
+                        }}
+                      >
+                        <td className="px-6 py-4">{index + 1}.</td>
+                        <td className="px-6 py-4">{item.name || "N/A"}</td>
+                        <td className="px-6 py-4">{item.email || "N/A"}</td>
+                        <td className="px-6 py-4">{item.uid || "N/A"}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="4"
+                        className="px-6 py-8 text-center"
+                        style={{
+                          color: isDark ? "white" : "",
+                        }}
+                      >
+                        No users found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </TabPanel>
+        </Tabs>
       </div>
-    </>
+    </div>
   );
 }
 

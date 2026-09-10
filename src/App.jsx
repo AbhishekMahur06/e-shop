@@ -1,9 +1,8 @@
-import React from "react";
 import {
   BrowserRouter as Router,
+  Navigate,
   Route,
   Routes,
-  Navigate,
 } from "react-router-dom";
 
 import Home from "./pages/home/Home";
@@ -17,17 +16,65 @@ import Signup from "./pages/registration/Signup";
 import ProductInfo from "./pages/productInfo/ProductInfo";
 import AddProduct from "./pages/admin/page/AddProduct";
 import UpdateProduct from "./pages/admin/page/UpdateProduct";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import Allproducts from "./pages/allproducts/Allproducts";
 import Profile from "./pages/profile/Profile";
+
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+const ADMIN_EMAIL = "ankur@gmail.com";
+
+const getLoggedInUser = () => {
+  try {
+    const savedUser = localStorage.getItem("user");
+
+    if (!savedUser) {
+      return null;
+    }
+
+    const parsedUser = JSON.parse(savedUser);
+
+    return parsedUser?.user || null;
+  } catch (error) {
+    console.error("Invalid user data:", error);
+    localStorage.removeItem("user");
+    return null;
+  }
+};
+
+function ProtectedRoute({ children }) {
+  const user = getLoggedInUser();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+function ProtectedRouteForAdmin({ children }) {
+  const user = getLoggedInUser();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.email !== ADMIN_EMAIL) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
+
 function App() {
   return (
     <MyState>
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
+
           <Route path="/allproducts" element={<Allproducts />} />
+
           <Route
             path="/order"
             element={
@@ -36,7 +83,9 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route path="/cart" element={<Cart />} />
+
           <Route
             path="/dashboard"
             element={
@@ -45,9 +94,13 @@ function App() {
               </ProtectedRouteForAdmin>
             }
           />
+
           <Route path="/login" element={<Login />} />
+
           <Route path="/signup" element={<Signup />} />
+
           <Route path="/productinfo/:id" element={<ProductInfo />} />
+
           <Route
             path="/addproduct"
             element={
@@ -56,6 +109,7 @@ function App() {
               </ProtectedRouteForAdmin>
             }
           />
+
           <Route
             path="/updateproduct"
             element={
@@ -64,9 +118,12 @@ function App() {
               </ProtectedRouteForAdmin>
             }
           />
+
           <Route path="/profile" element={<Profile />} />
-          <Route path="/*" element={<NoPage />} />
+
+          <Route path="*" element={<NoPage />} />
         </Routes>
+
         <ToastContainer />
       </Router>
     </MyState>
@@ -74,26 +131,3 @@ function App() {
 }
 
 export default App;
-
-// user
-
-export const ProtectedRoute = ({ children }) => {
-  const user = localStorage.getItem("user");
-  if (user) {
-    return children;
-  } else {
-    return <Navigate to={"/login"} />;
-  }
-};
-
-// admin
-
-const ProtectedRouteForAdmin = ({ children }) => {
-  const admin = JSON.parse(localStorage.getItem("user"));
-
-  if (admin.user.email === "abhishekmahur05@gmail.com") {
-    return children;
-  } else {
-    return <Navigate to={"/login"} />;
-  }
-};
