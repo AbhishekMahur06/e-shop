@@ -1,5 +1,7 @@
 import { useContext, useState } from "react";
+
 import { useNavigate } from "react-router-dom";
+
 import myContext from "../../../context/data/myContext";
 
 function UpdateProduct() {
@@ -7,6 +9,7 @@ function UpdateProduct() {
     useContext(myContext);
 
   const navigate = useNavigate();
+
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
@@ -32,7 +35,7 @@ function UpdateProduct() {
     const category = products?.category?.trim();
     const description = products?.description?.trim();
 
-    if (!title || !price || !imageUrl || !category || !description) {
+    if (!title || price === "" || !imageUrl || !category || !description) {
       setError("Please fill in all fields.");
       return;
     }
@@ -47,10 +50,11 @@ function UpdateProduct() {
       return;
     }
 
-    try {
-      await updateProduct();
-      navigate("/admin");
-    } catch (err) {
+    const success = await updateProduct();
+
+    if (success) {
+      navigate("/dashboard", { replace: true });
+    } else {
       setError("Failed to update product. Please try again.");
     }
   };
@@ -76,7 +80,7 @@ function UpdateProduct() {
           <input
             type="number"
             name="price"
-            value={products?.price || ""}
+            value={products?.price ?? ""}
             onChange={handleChange}
             min="0"
             step="0.01"

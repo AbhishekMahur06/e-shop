@@ -1,34 +1,62 @@
-import { useContext, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { collection, getDocs, query, where } from "firebase/firestore";
+
 import Layout from "../../components/layout/Layout";
-import myContext from "../../context/data/myContext";
+import { auth, fireDB } from "../../fireabase/FirebaseConfig";
 
 const PROFILE_IMAGE =
   "https://www.shareicon.net/data/512x512/2016/05/24/770137_man_512x512.png";
 
 function Profile() {
-  const { user } = useContext(myContext);
   const [userInfo, setUserInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
-    let userId = null;
+    const getUserInfo = async () => {
+      try {
+        setLoading(true);
 
-    try {
-      const savedUser = localStorage.getItem("user");
-      const loggedInUser = savedUser ? JSON.parse(savedUser) : null;
-      userId = loggedInUser?.user?.uid || null;
-    } catch (error) {
-      console.error("Invalid user data:", error);
-    }
+        const currentUser = auth.currentUser;
 
-    if (!userId || !Array.isArray(user)) {
-      setUserInfo(null);
-      return;
-    }
+        if (!currentUser) {
+          navigate("/login", { replace: true });
+          return;
+        }
 
-    const userData = user.find((item) => item.uid === userId);
-    setUserInfo(userData || null);
-  }, [user]);
+        const q = query(
+          collection(fireDB, "users"),
+          where("uid", "==", currentUser.uid),
+        );
+
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          const userData = querySnapshot.docs[0].data();
+
+          setUserInfo({
+            id: querySnapshot.docs[0].id,
+            ...userData,
+          });
+        } else {
+          setUserInfo({
+            name: currentUser.displayName || "User",
+            email: currentUser.email || "",
+            uid: currentUser.uid,
+          });
+        }
+      } catch (error) {
+        console.error("Error loading user information:", error);
+        setUserInfo(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getUserInfo();
+  }, [navigate]);
 
   return (
     <Layout>
@@ -42,7 +70,9 @@ function Profile() {
         </div>
 
         <div className="w-full border flex gap-5 justify-center flex-col text-center max-sm:justify-start max-sm:h-fit bg-neutral-300 p-5">
-          {userInfo ? (
+          {loading ? (
+            <p>Loading user information...</p>
+          ) : userInfo ? (
             <>
               <h1 className="text-2xl">Username: {userInfo.name}</h1>
 
@@ -63,7 +93,7 @@ function Profile() {
               </Link>
             </>
           ) : (
-            <p>Loading user information...</p>
+            <p>Unable to load user information.</p>
           )}
         </div>
       </div>

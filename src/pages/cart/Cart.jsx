@@ -150,7 +150,7 @@ function Cart() {
     };
 
     const options = {
-      key: "YOUR_RAZORPAY_KEY_ID",
+      key: "rzp_test_lQQ9viYbOfgQCk",
       amount: Math.round(grandTotal * 100),
       currency: "INR",
       name: "E-Bharat",

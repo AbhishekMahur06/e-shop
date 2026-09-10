@@ -32,6 +32,7 @@ function Login() {
         password,
       );
 
+      // Kept temporarily for compatibility with existing project logic.
       localStorage.setItem("user", JSON.stringify(result));
 
       toast.success("Login successful", {
@@ -69,6 +70,14 @@ function Login() {
           toast.error("Too many attempts. Try again later");
           break;
 
+        case "auth/user-disabled":
+          toast.error("This account has been disabled");
+          break;
+
+        case "auth/network-request-failed":
+          toast.error("Network error. Check your internet connection");
+          break;
+
         default:
           toast.error("Login failed. Please try again");
       }
@@ -96,6 +105,7 @@ function Login() {
           className="mb-4 w-full rounded-lg bg-gray-600 px-2 py-2 text-white outline-none placeholder:text-gray-200 lg:w-[20em]"
           placeholder="Email"
           disabled={loading}
+          required
         />
 
         <input
@@ -107,6 +117,7 @@ function Login() {
           className="mb-4 w-full rounded-lg bg-gray-600 px-2 py-2 text-white outline-none placeholder:text-gray-200 lg:w-[20em]"
           placeholder="Password"
           disabled={loading}
+          required
         />
 
         <div className="mb-3 flex justify-center">

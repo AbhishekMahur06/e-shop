@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import MyContext from "./myContext";
 
 import {
@@ -12,10 +13,15 @@ import {
   orderBy,
   query,
   updateDoc,
+  where,
 } from "firebase/firestore";
 
+import { onAuthStateChanged } from "firebase/auth";
 import { toast } from "react-toastify";
-import { fireDB } from "../../fireabase/FirebaseConfig";
+
+import { fireDB, auth } from "../../fireabase/FirebaseConfig";
+
+const ADMIN_EMAIL = "ankur@gmail.com";
 
 const getDefaultProduct = () => ({
   title: "",
@@ -34,6 +40,25 @@ const getDefaultProduct = () => ({
 function MyState({ children }) {
   const [mode, setMode] = useState("light");
 
+  const [authUser, setAuthUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  const [productLoading, setProductLoading] = useState(false);
+  const [orderLoading, setOrderLoading] = useState(false);
+  const [userLoading, setUserLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const [products, setProducts] = useState(getDefaultProduct);
+  const [product, setProduct] = useState([]);
+  const [order, setOrder] = useState([]);
+  const [user, setUser] = useState([]);
+
+  const [searchkey, setSearchkey] = useState("");
+  const [filterType, setFilterType] = useState("");
+  const [filterPrice, setFilterPrice] = useState("");
+
+  const isAdmin = authUser?.email === ADMIN_EMAIL;
+
   const toggleMode = () => {
     setMode((prevMode) => {
       const newMode = prevMode === "light" ? "dark" : "light";
@@ -45,14 +70,130 @@ function MyState({ children }) {
     });
   };
 
-  const [productLoading, setProductLoading] = useState(false);
-  const [orderLoading, setOrderLoading] = useState(false);
-  const [userLoading, setUserLoading] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
+  // Firebase authentication state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setAuthUser(currentUser);
+      setAuthLoading(false);
+    });
 
-  const [products, setProducts] = useState(getDefaultProduct);
-  const [product, setProduct] = useState([]);
+    return () => unsubscribe();
+  }, []);
 
+  // Products
+  useEffect(() => {
+    setProductLoading(true);
+
+    const productsQuery = query(
+      collection(fireDB, "products"),
+      orderBy("time"),
+    );
+
+    const unsubscribe = onSnapshot(
+      productsQuery,
+      (snapshot) => {
+        const productArray = snapshot.docs.map((document) => ({
+          ...document.data(),
+          id: document.id,
+        }));
+
+        setProduct(productArray);
+        setProductLoading(false);
+      },
+      (error) => {
+        console.error("Error getting products:", error);
+        toast.error("Failed to load products");
+        setProductLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  // Orders
+  useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
+    if (!authUser) {
+      setOrder([]);
+      setOrderLoading(false);
+      return;
+    }
+
+    const getOrderData = async () => {
+      setOrderLoading(true);
+
+      try {
+        let orderQuery;
+
+        if (isAdmin) {
+          orderQuery = collection(fireDB, "order");
+        } else {
+          orderQuery = query(
+            collection(fireDB, "order"),
+            where("userid", "==", authUser.uid),
+          );
+        }
+
+        const result = await getDocs(orderQuery);
+
+        const ordersArray = result.docs.map((document) => ({
+          ...document.data(),
+          id: document.id,
+        }));
+
+        setOrder(ordersArray);
+      } catch (error) {
+        console.error("Error getting orders:", error);
+        toast.error("Failed to load orders");
+        setOrder([]);
+      } finally {
+        setOrderLoading(false);
+      }
+    };
+
+    getOrderData();
+  }, [authUser, authLoading, isAdmin]);
+
+  // Users - only admin needs all users
+  useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
+    if (!authUser || !isAdmin) {
+      setUser([]);
+      setUserLoading(false);
+      return;
+    }
+
+    const getUserData = async () => {
+      setUserLoading(true);
+
+      try {
+        const result = await getDocs(collection(fireDB, "users"));
+
+        const usersArray = result.docs.map((document) => ({
+          ...document.data(),
+          id: document.id,
+        }));
+
+        setUser(usersArray);
+      } catch (error) {
+        console.error("Error getting users:", error);
+        toast.error("Failed to load users");
+        setUser([]);
+      } finally {
+        setUserLoading(false);
+      }
+    };
+
+    getUserData();
+  }, [authUser, authLoading, isAdmin]);
+
+  // Add product
   const addProduct = async () => {
     const { title, price, imageUrl, category, description } = products;
 
@@ -75,6 +216,11 @@ function MyState({ children }) {
 
     if (!Number.isFinite(numericPrice) || numericPrice <= 0) {
       toast.error("Price must be a valid number greater than 0");
+      return false;
+    }
+
+    if (!authUser || !isAdmin) {
+      toast.error("Admin access required");
       return false;
     }
 
@@ -110,35 +256,7 @@ function MyState({ children }) {
     }
   };
 
-  useEffect(() => {
-    setProductLoading(true);
-
-    const productsQuery = query(
-      collection(fireDB, "products"),
-      orderBy("time"),
-    );
-
-    const unsubscribe = onSnapshot(
-      productsQuery,
-      (snapshot) => {
-        const productArray = snapshot.docs.map((document) => ({
-          ...document.data(),
-          id: document.id,
-        }));
-
-        setProduct(productArray);
-        setProductLoading(false);
-      },
-      (error) => {
-        console.error("Error getting products:", error);
-        toast.error("Failed to load products");
-        setProductLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
-  }, []);
-
+  // Select product for editing
   const edithandle = (item) => {
     if (!item?.id) {
       toast.error("Product ID is missing");
@@ -151,6 +269,7 @@ function MyState({ children }) {
     });
   };
 
+  // Update product
   const updateProduct = async () => {
     const { id, title, price, imageUrl, category, description } = products;
 
@@ -181,6 +300,11 @@ function MyState({ children }) {
       return false;
     }
 
+    if (!authUser || !isAdmin) {
+      toast.error("Admin access required");
+      return false;
+    }
+
     setActionLoading(true);
 
     try {
@@ -206,9 +330,15 @@ function MyState({ children }) {
     }
   };
 
+  // Delete product
   const deleteProduct = async (item) => {
     if (!item?.id) {
       toast.error("Product ID is missing");
+      return false;
+    }
+
+    if (!authUser || !isAdmin) {
+      toast.error("Admin access required");
       return false;
     }
 
@@ -237,69 +367,23 @@ function MyState({ children }) {
     }
   };
 
-  const [order, setOrder] = useState([]);
-
-  const getOrderData = async () => {
-    setOrderLoading(true);
-
-    try {
-      const result = await getDocs(collection(fireDB, "order"));
-
-      const ordersArray = result.docs.map((document) => ({
-        ...document.data(),
-        id: document.id,
-      }));
-
-      setOrder(ordersArray);
-    } catch (error) {
-      console.error("Error getting orders:", error);
-      toast.error("Failed to load orders");
-    } finally {
-      setOrderLoading(false);
-    }
-  };
-
-  const [user, setUser] = useState([]);
-
-  const getUserData = async () => {
-    setUserLoading(true);
-
-    try {
-      const result = await getDocs(collection(fireDB, "users"));
-
-      const usersArray = result.docs.map((document) => ({
-        ...document.data(),
-        id: document.id,
-      }));
-
-      setUser(usersArray);
-    } catch (error) {
-      console.error("Error getting users:", error);
-      toast.error("Failed to load users");
-    } finally {
-      setUserLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    getOrderData();
-    getUserData();
-  }, []);
-
-  const [searchkey, setSearchkey] = useState("");
-  const [filterType, setFilterType] = useState("");
-  const [filterPrice, setFilterPrice] = useState("");
-
   const loading =
-    productLoading || orderLoading || userLoading || actionLoading;
+    authLoading ||
+    productLoading ||
+    orderLoading ||
+    userLoading ||
+    actionLoading;
 
   return (
     <MyContext.Provider
       value={{
         mode,
         toggleMode,
-
         loading,
+
+        authLoading,
+        authUser,
+
         productLoading,
         orderLoading,
         userLoading,
@@ -307,8 +391,8 @@ function MyState({ children }) {
 
         products,
         setProducts,
-        product,
 
+        product,
         addProduct,
         edithandle,
         updateProduct,
@@ -319,8 +403,10 @@ function MyState({ children }) {
 
         searchkey,
         setSearchkey,
+
         filterType,
         setFilterType,
+
         filterPrice,
         setFilterPrice,
       }}

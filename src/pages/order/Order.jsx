@@ -1,55 +1,44 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import myContext from "../../context/data/myContext";
 import Layout from "../../components/layout/Layout";
 import Loader from "../../components/loader/Loader";
 
 function Order() {
-  const { mode, order, orderLoading } = useContext(myContext);
-  const [userAllOrder, setUserAllOrder] = useState([]);
+  const { mode, order, orderLoading, authLoading } = useContext(myContext);
 
-  useEffect(() => {
-    let userId = null;
+  const userOrders = Array.isArray(order) ? order : [];
+  const isLoading = authLoading || orderLoading;
 
-    try {
-      const savedUser = localStorage.getItem("user");
-      const loggedInUser = savedUser ? JSON.parse(savedUser) : null;
-      userId = loggedInUser?.user?.uid || null;
-    } catch (error) {
-      console.error("Invalid user data:", error);
-    }
-
-    if (!userId || !Array.isArray(order)) {
-      setUserAllOrder([]);
-      return;
-    }
-
-    const userOrders = order.filter((item) => item.userid === userId);
-    setUserAllOrder(userOrders);
-  }, [order]);
+  const formatPrice = (price) => {
+    const amount = Number(price);
+    return Number.isFinite(amount) ? amount.toLocaleString("en-IN") : "0";
+  };
 
   return (
     <Layout>
-      {orderLoading && <Loader />}
+      {isLoading && <Loader />}
 
-      {!orderLoading && userAllOrder.length > 0 ? (
+      {!isLoading && userOrders.length > 0 ? (
         <div className="h-full font-bold pt-10">
           <h1
-            className="text-2xl text-center max-sm:text-center mb-5"
-            style={{ color: mode === "dark" ? "white" : "" }}
+            className="text-2xl text-center mb-5"
+            style={{
+              color: mode === "dark" ? "white" : "",
+            }}
           >
             Your Orders:
           </h1>
 
-          {userAllOrder.map((userOrder) => (
+          {userOrders.map((userOrder) => (
             <div
               key={userOrder.id}
               className="mx-auto max-w-5xl justify-center px-6 md:flex md:space-x-6 xl:px-0"
             >
               <div className="w-full">
                 {Array.isArray(userOrder.cartItems) &&
-                  userOrder.cartItems.map((item) => (
+                  userOrder.cartItems.map((item, index) => (
                     <div
-                      key={`${userOrder.id}-${item.id}`}
+                      key={`${userOrder.id}-${item.id || index}`}
                       className="rounded-lg mb-6"
                     >
                       <div
@@ -63,6 +52,7 @@ function Order() {
                           src={item.imageUrl}
                           alt={item.title || "Product"}
                           className="w-full rounded-lg sm:w-40 object-contain"
+                          loading="lazy"
                         />
 
                         <div className="sm:ml-4 sm:flex sm:w-full sm:justify-between">
@@ -73,7 +63,7 @@ function Order() {
                                 color: mode === "dark" ? "white" : "",
                               }}
                             >
-                              Title: {item.title}
+                              Title: {item.title || "Product"}
                             </h2>
 
                             <p
@@ -82,7 +72,8 @@ function Order() {
                                 color: mode === "dark" ? "white" : "",
                               }}
                             >
-                              Description: {item.description}
+                              Description:{" "}
+                              {item.description || "No description"}
                             </p>
 
                             <p
@@ -91,7 +82,7 @@ function Order() {
                                 color: mode === "dark" ? "white" : "",
                               }}
                             >
-                              Price: ₹{Number(item.price) || 0}
+                              Price: ₹{formatPrice(item.price)}
                             </p>
 
                             <p
@@ -100,7 +91,7 @@ function Order() {
                                 color: mode === "dark" ? "white" : "",
                               }}
                             >
-                              Quantity: {item.quantity || 1}
+                              Quantity: {Number(item.quantity) || 1}
                             </p>
                           </div>
                         </div>
@@ -111,21 +102,26 @@ function Order() {
             </div>
           ))}
         </div>
-      ) : !orderLoading ? (
-        <div className="h-[100vh] flex items-center justify-center flex-col">
-          <h1
-            style={{ color: mode === "dark" ? "white" : "" }}
-            className="text-3xl max-sm:text-center"
-          >
-            You do not have any orders...
-          </h1>
+      ) : (
+        !isLoading && (
+          <div className="h-[100vh] flex items-center justify-center flex-col">
+            <h1
+              style={{
+                color: mode === "dark" ? "white" : "",
+              }}
+              className="text-3xl max-sm:text-center"
+            >
+              You do not have any orders...
+            </h1>
 
-          <img
-            src="https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-4816550-4004141.png"
-            alt="No orders"
-          />
-        </div>
-      ) : null}
+            <img
+              src="https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-4816550-4004141.png"
+              alt="No orders"
+              loading="lazy"
+            />
+          </div>
+        )
+      )}
     </Layout>
   );
 }
